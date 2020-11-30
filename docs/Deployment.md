@@ -17,7 +17,7 @@ This document walks through :
 
 Click **Deploy to Azure** button below  
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fmicrosoft%2Fproject15%2Fmaster%2FDeploy%2Fazuredeploy.json" target="_blank"><img src="deploy-to-azure.svg"/></a>
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdaisukeiot%2FIoT-Plug-and-Play-Workshop-Deploy%2Fmain%2Fiotplugandplayworkshop.json" target="_blank"><img src="deploy-to-azure.svg"/></a>
 
 > [!TIP]  
 > Right click the button below and select **Open link in new tab** or **Open lin in new window**
