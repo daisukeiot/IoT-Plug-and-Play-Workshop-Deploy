@@ -525,14 +525,13 @@
               "value": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))).dataAccessFQDN]"
             },
             {
-              "name": "ModelRepository__ModelRepository__repoUrl",
-              "value": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))).dataAccessFQDN]"
+              "name": "Azure__ModelRepository__repoUrl",
+              "value": "testModelRepoUri"
             },
             {
-              "name": "Azure__TimeSeriesInsights__tsiUri",
-              "value": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))).dataAccessFQDN]"
-            },
-
+              "name": "Azure__GitHub__token",
+              "value": "TestGitHubToken"
+            }
           ]
         }
       },
