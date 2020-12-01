@@ -58,7 +58,7 @@
     "ehSendRule": "TelemetrySendRule",
     "functionAppName": "[concat('IoTPnPWS-Functions-', parameters('UniqueID'))]",
     "hostingPlanName": "[concat('IoTPnPWS-HostingPlan-', parameters('UniqueID'))]",
-    "storageAccountName": "[toLower(concat('stor', parameters('UniqueID')))]",
+    "storageAccountName": "[toLower(concat('iotpnpwsstor', parameters('UniqueID')))]",
     "signalrName": "[concat('IoTPnPWS-SignalR-', parameters('UniqueID'))]",
     "webSiteName": "[concat('IoTPnPWS-Portal-', parameters('UniqueID'))]",
     "webRepoUrl": "https://github.com/daisukeiot/IoTPnP-WS-WebApp.git",
