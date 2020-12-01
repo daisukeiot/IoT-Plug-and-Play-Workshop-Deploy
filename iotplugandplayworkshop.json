@@ -390,7 +390,8 @@
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]",
         "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]",
         "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
-        "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('ehNameSpace'), variables('ehHubName'), variables('ehListenRule'))]"
+        "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('ehNameSpace'), variables('ehHubName'), variables('ehListenRule'))]",
+        "[resourceId('Microsoft.Devices/provisioningServices', variables('dpsName'))]"
       ],
       "tags": {
         "ENV": "[variables('envTag')]"
@@ -526,11 +527,19 @@
             },
             {
               "name": "Azure__ModelRepository__repoUrl",
-              "value": "testModelRepoUri"
+              "value": ""
             },
             {
               "name": "Azure__GitHub__token",
-              "value": "TestGitHubToken"
+              "value": ""
+            },
+            {
+              "name": "Azure__Dps__IdScope",
+              "value": "[reference(resourceId('Microsoft.Devices/ProvisioningServices',variables('dpsName'))).idScope]"
+            },
+            {
+              "name": "Azure__Dps__ConnectionString",
+              "value": "[concat('HostName=', variables('dpsName'), '.azure-devices-provisioning.net;SharedAccessKeyName=provisioningserviceowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/provisioningServices', variables('dpsName')), providers('Microsoft.Devices', 'provisioningServices').apiVersions[0]).value[0].primaryKey)]"
             }
           ]
         }
