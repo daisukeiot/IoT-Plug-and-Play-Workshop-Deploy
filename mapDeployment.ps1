@@ -238,5 +238,3 @@ $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $appName  -AppSettings $newAppSettings
-Set-AzureADApplication
-[concat('az ad app update --id ', parameters('servicePrincipalAppId'), ' --reply-urls ', concat('\"https://',  variables('webSiteName'),'.azurewebsites.net/\"'))]
