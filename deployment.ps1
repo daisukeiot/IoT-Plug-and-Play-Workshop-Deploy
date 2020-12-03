@@ -1,9 +1,42 @@
-param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey)
+param([string] [Parameter(Mandatory=$true)] $subscriptionId,
+      [string] [Parameter(Mandatory=$true)] $mapSubscriptionKey
+)
 
 $DeploymentScriptOutputs = @{}
 $Debug = $false
-$SleepTime = 1.0
+$SleepTime = 5.0
 $global:progressPreference = 'silentlyContinue'
+$global:ErrorActionPreference = 'silentlyContinue'
+
+Write-Host "Azure Subscription ID $($subscriptionId)"
+Write-Host "Azure Map Subscription key $($mapSubscriptionKey)"
+
+#$mapSubscriptionKey = "RBi-MAGMlhhUrt4UNZGtUuZd3gOzSzuEqz5gw8Vpu4M"
+$mapSubscriptionKey = "d0ds-Qlako5q0oX0UvVMZp52uaDIZ3NoP2c5W37OySM"
+
+$spName="IoTPnPWS-TSI-SP-$($subscriptionId)"
+
+$servicePrincipalAppId=(az ad app list --show-mine --query "[?displayName==$($spName)].appId" -o tsv)
+
+if ($servicePrincipalAppId -eq $null )
+{
+    servicePrincipalAppId=(az ad app create --display-name $($spName) --identifier-uris "https://$($spName)"  --oauth2-allow-implicit-flow true --required-resource-accesses '[{"resourceAppId":"120d688d-1518-4cf7-bd38-182f158850b6","resourceAccess":[{"id":"a3a77dfe-67a4-4373-b02a-dfe8485e2248","type":"Scope"}]}]' --query appId -o tsv)
+}
+
+$servicePrincipalObjectId=(az ad sp list --show-mine --query "[?appDisplayName==$($spName)].objectId" -o tsv)
+
+if ($servicePrincipalObjectId -eq $null)
+{
+    $servicePrincipalObjectId=(az ad sp create --id $servicePrincipalAppId --query objectId -o tsv)
+}
+
+$servicePrincipalSecret=(az ad app credential reset --append --id $servicePrincipalAppId --credential-description "TSISecret" --query password -o tsv)
+$servicePrincipalTenantId=(az ad sp show --id $servicePrincipalAppId --query appOwnerTenantId -o tsv)
+
+echo 'Service Principal App Id    :' $servicePrincipalAppId
+echo 'Service Principal Password  :' $servicePrincipalSecret
+echo 'Service Principal Tenant Id :' $servicePrincipalTenantId
+echo 'Service Principal Object Id :' $servicePrincipalObjectId
 
 ##################################################
 # Step 1 : Download sample Drawing data
