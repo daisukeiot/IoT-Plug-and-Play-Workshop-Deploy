@@ -1,4 +1,7 @@
-param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey)
+param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey,
+      [string] [Parameter(Mandatory=$true)] $resGroup,
+      [string] [Parameter(Mandatory=$true)] $webAppName
+)
 
 $DeploymentScriptOutputs = @{}
 $Debug = $true
@@ -219,3 +222,16 @@ foreach ($mapDataItem in $mapData.mapDataList) {
     $url = "https://atlas.microsoft.com/mapData/$($mapDataItem.udid)?subscription-key=$($mapSubscriptionKey)&api-version=1.0"
     Invoke-RestMethod -Uri $url -Method Delete
 }
+
+$webapp = Get-AzWebApp -ResourceGroupName $resGroup -Name $webAppName
+$appSettings = $webapp.SiteConfig.AppSettings
+
+$newAppSettings = @{}
+ForEach ($item in $appSettings) {
+    $newAppSettings[$item.Name] = $item.Value
+}
+
+$newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
+$newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
+
+Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $appName  -AppSettings $newAppSettings
