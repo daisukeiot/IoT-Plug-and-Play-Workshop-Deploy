@@ -2,7 +2,6 @@ param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey)
 
 $DeploymentScriptOutputs = @{}
 $Debug = $true
-$SleepTime = 1.0
 $global:progressPreference = 'silentlyContinue'
 $global:ErrorActionPreference = 'silentlyContinue'
 
@@ -22,7 +21,7 @@ $resp = Invoke-WebRequest -Uri $url -Method Post -ContentType 'application/octet
 
 # Make sure the drawing was uploaded.
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
-
+$SleepTime = 3.0
 do {
     $resp = Invoke-RestMethod -Uri $url -Method Get
     if ($resp.status -ne "Succeeded") {
