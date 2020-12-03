@@ -84,6 +84,7 @@ do {
 $url = "https://atlas.microsoft.com/dataset/create?api-version=1.0&conversionID=$($conversionId)&type=facility&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
 $resp = Invoke-WebRequest -Uri $url -Method Post
+Write-Host "response status : $($resp.StatusCode)"
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
 $SleepTime = 1.0
 
@@ -109,6 +110,7 @@ do {
 $url = "https://atlas.microsoft.com/tileset/create/vector?api-version=1.0&datasetID=$($dataSetId)&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
 $resp = Invoke-WebRequest -Uri $url -Method Post
+Write-Host "response status : $($resp.StatusCode)"
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
 $SleepTime = 1.0
 
@@ -206,6 +208,7 @@ $stateSet = '{
 $url = "https://atlas.microsoft.com/featureState/stateset?api-version=1.0&datasetId=$($dataSetId)&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
 $resp = Invoke-RestMethod -Uri $url -Method Post -ContentType 'application/json' -Body $stateSet
+Write-Host "response status : $($resp.StatusCode)"
 $stateSetId = $resp.statesetId
 
 $DeploymentScriptOutputs['statesetId'] = $stateSetId
@@ -235,3 +238,5 @@ $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $appName  -AppSettings $newAppSettings
+Set-AzureADApplication
+[concat('az ad app update --id ', parameters('servicePrincipalAppId'), ' --reply-urls ', concat('\"https://',  variables('webSiteName'),'.azurewebsites.net/\"'))]
