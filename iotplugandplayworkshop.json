@@ -70,6 +70,11 @@
     "tsiEventSource": "IoTPnPWS-TSI-EventHubs",
     "mapName": "[concat('IoTPnPWS-MAP-', parameters('UniqueID'))]",
     "adtName": "[concat('IoTPnPWS-ADT-', parameters('UniqueID'))]",
+		"utcValue" : "[utcNow()]",
+		"scriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/mapDeployment.ps1",
+		"UserIdentity": "IoTPnPWS-Identity",
+		"bootstrapRoleAssignmentId": "[guid(concat(resourceGroup().id, 'contributor'))]",
+		"contributorRoleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
     "envTag": "2020-Nov-25"
   },
   "resources": [
@@ -662,30 +667,76 @@
       ]
     },
     {
-      "type": "Microsoft.Maps/accounts",
-      "apiVersion": "2018-05-01",
-      "name": "[variables('mapName')]",
-      "location": "global",
-      "sku": {
-        "name": "S1"
-      }
-    },
-    {
-      "type": "Microsoft.Maps/accounts/privateAtlases",
-      "apiVersion": "2020-02-01-preview",
-      "name": "[concat(variables('mapName'), '/ADT-Demo-Map-Creator')]",
-      "location": "United States",
-      "dependsOn": [
-          "[resourceId('Microsoft.Maps/accounts', variables('mapName'))]"
-      ]
-    },
-    {
       "type": "Microsoft.DigitalTwins/digitalTwinsInstances",
       "apiVersion": "2020-10-31",
       "name": "[variables('adtName')]",
       "location": "westus2",
       "properties": {}
-    }
+    },
+    		{
+			"type": "Microsoft.Maps/accounts",
+			"apiVersion": "2018-05-01",
+			"name": "[variables('mapName')]",
+			"location": "global",
+			"sku": {
+				"name": "S1"
+			}
+		},
+		{
+			"type": "Microsoft.Maps/accounts/privateAtlases",
+			"apiVersion": "2020-02-01-preview",
+			"name": "[concat(variables('mapName'), '/', variables('mapName'), '-Creator')]",
+			"location": "United States",
+			"dependsOn": [
+				"[resourceId('Microsoft.Maps/accounts', variables('mapName'))]"
+			]
+		},
+		{
+			"type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+			"apiVersion": "2018-11-30",
+			"name": "[variables('UserIdentity')]",
+			"location": "[resourceGroup().location]"
+		},
+		{
+			"type": "Microsoft.Authorization/roleAssignments",
+			"apiVersion": "2018-09-01-preview",
+			"name": "[variables('bootstrapRoleAssignmentId')]",
+			"dependsOn": [
+				"[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity'))]"
+			],
+			"properties": {
+				"roleDefinitionId": "[variables('contributorRoleDefinitionId')]",
+				"principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity')), '2018-11-30').principalId]",
+				"scope": "[resourceGroup().id]",
+				"principalType": "ServicePrincipal"
+			}
+		},
+		{
+			"type": "Microsoft.Resources/deploymentScripts",
+			"apiVersion": "2019-10-01-preview",
+			"name": "DeploymentScript",
+			"location": "[resourceGroup().location]",
+			"kind": "AzurePowerShell",
+			"identity": {
+				"type": "userAssigned",
+				"userAssignedIdentities": {
+					"[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity'))]": {}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Authorization/roleAssignments', variables('bootstrapRoleAssignmentId'))]",
+				"[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]"
+			],
+			"properties": {
+				"forceUpdateTag": "[variables('utcValue')]",
+				"azPowerShellVersion": "5.0",
+				"timeout": "PT30M",
+				"arguments": "[concat('-mapSubscriptionKey', ' ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey)]",
+				"primaryScriptURI": "[variables('scriptUrl')]",
+				"cleanupPreference": "OnSuccess",
+				"retentionInterval": "P1D"
+			}
+		}
   ],
   "outputs": {
     "postDeploymentCommand": {
