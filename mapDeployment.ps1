@@ -89,12 +89,12 @@ do {
     $resp = Invoke-RestMethod -Uri $url -Method Get
     if ($resp.status -ne "Succeeded") {
         if ($Debug -eq $true) {
-            Write-Host "Conversion : $($resp.status)"
+            Write-Host "Dataset : $($resp.status)"
         }
         Start-Sleep -Seconds $SleepTime
     }
     else {
-        Write-Host "Conversion : completed"
+        Write-Host "Dataset : completed"
         $resLocation = [uri]$resp.resourceLocation
         $dataSetId = $resLocation.Segments[2]
         break;
