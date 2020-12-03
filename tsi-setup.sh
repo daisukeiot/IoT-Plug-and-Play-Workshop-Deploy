@@ -2,6 +2,8 @@ subscriptionId=$(az account show --query id -o tsv)
 
 spName='OpenPlatform-TSI-SP'-"$subscriptionId"
 
+echo 'spName : ' $spName
+
 servicePrincipalAppId=$(az ad app list --show-mine --query "[?displayName=='$spName'].appId" -o tsv)
 
 if [ -z "$servicePrincipalAppId" ]; then
