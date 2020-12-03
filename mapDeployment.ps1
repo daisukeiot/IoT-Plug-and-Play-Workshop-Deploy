@@ -1,10 +1,12 @@
 param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey)
 
 $DeploymentScriptOutputs = @{}
-$Debug = $false
+$Debug = $true
 $SleepTime = 1.0
 $global:progressPreference = 'silentlyContinue'
 $global:ErrorActionPreference = 'silentlyContinue'
+
+Write-Host "Azure Map Subscription key $($mapSubscriptionKey)"
 
 ##################################################
 # Step 1 : Download sample Drawing data
