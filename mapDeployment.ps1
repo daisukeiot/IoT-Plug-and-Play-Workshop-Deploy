@@ -4,6 +4,7 @@ $DeploymentScriptOutputs = @{}
 $Debug = $false
 $SleepTime = 1.0
 $global:progressPreference = 'silentlyContinue'
+$global:ErrorActionPreference = 'silentlyContinue'
 
 ##################################################
 # Step 1 : Download sample Drawing data
