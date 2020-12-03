@@ -730,7 +730,7 @@
 				"forceUpdateTag": "[parameters('UniqueID')]",
 				"azPowerShellVersion": "5.0",
 				"timeout": "PT30M",
-				"arguments": "[concat('-mapSubscriptionKey', ' ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey)]",
+				"arguments": "[concat('-mapSubscriptionKey', ' ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey, ' -resGroup ', resourceGroup().name, ' -webAppName ', variables('webSiteName'))]",
 				"primaryScriptURI": "[variables('scriptUrl')]",
 				"cleanupPreference": "OnSuccess",
 				"retentionInterval": "P1D"
