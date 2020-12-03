@@ -52,6 +52,7 @@ if ($resp.uploadStatus -ne "Completed") {
 }
 $udid = $resp.udid
 
+Start-Sleep -Seconds 5
 ##################################################
 # Step 3 : Convert a Drawing package
 ##################################################
@@ -77,10 +78,10 @@ do {
     }
 } while ($true)
 
+Start-Sleep -Seconds 5
 ##################################################
 # Step 4 : Create a dataset
 ##################################################
-
 $url = "https://atlas.microsoft.com/dataset/create?api-version=1.0&conversionID=$($conversionId)&type=facility&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
 $resp = Invoke-WebRequest -Uri $url -Method Post
@@ -104,6 +105,7 @@ do {
     }
 } while ($true)
 
+Start-Sleep -Seconds 5
 ##################################################
 # Step 5 : Create a tileset
 ##################################################
@@ -141,6 +143,7 @@ if ($Debug -eq $true) {
     $url = "https://atlas.microsoft.com/wfs/datasets/$($dataSetId)/collections/unit/items?subscription-key=$($mapSubscriptionKey)&api-version=1.0"
 }
 
+Start-Sleep -Seconds 5
 ##################################################
 # Step 6 : Create a feature stateset
 ##################################################
