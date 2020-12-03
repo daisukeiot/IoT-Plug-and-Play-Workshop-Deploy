@@ -70,7 +70,6 @@
     "tsiEventSource": "IoTPnPWS-TSI-EventHubs",
     "mapName": "[concat('IoTPnPWS-MAP-', parameters('UniqueID'))]",
     "adtName": "[concat('IoTPnPWS-ADT-', parameters('UniqueID'))]",
-		"utcValue" : "[utcNow()]",
 		"scriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/mapDeployment.ps1",
 		"UserIdentity": "IoTPnPWS-Identity",
 		"bootstrapRoleAssignmentId": "[guid(concat(resourceGroup().id, 'contributor'))]",
@@ -728,7 +727,7 @@
 				"[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]"
 			],
 			"properties": {
-				"forceUpdateTag": "[variables('utcValue')]",
+				"forceUpdateTag": "[parameters('UniqueID')]",
 				"azPowerShellVersion": "5.0",
 				"timeout": "PT30M",
 				"arguments": "[concat('-mapSubscriptionKey', ' ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey)]",
