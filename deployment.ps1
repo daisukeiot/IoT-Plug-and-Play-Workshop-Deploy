@@ -1,4 +1,4 @@
-param([string] $subscriptionKey)
+param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey)
 
 $DeploymentScriptOutputs = @{}
 $Debug = $false
