@@ -1,5 +1,5 @@
 param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey,
-      [string] [Parameter(Mandatory=$true)] $resGroup,
+      [string] [Parameter(Mandatory=$true)] $resourceGroupName,
       [string] [Parameter(Mandatory=$true)] $webAppName
 )
 
@@ -229,7 +229,7 @@ foreach ($mapDataItem in $mapData.mapDataList) {
     Invoke-RestMethod -Uri $url -Method Delete
 }
 
-$webapp = Get-AzWebApp -ResourceGroupName $resGroup -Name $webAppName
+$webapp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName
 $appSettings = $webapp.SiteConfig.AppSettings
 
 $newAppSettings = @{}
@@ -240,4 +240,4 @@ ForEach ($item in $appSettings) {
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
-Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $appName  -AppSettings $newAppSettings
+Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
