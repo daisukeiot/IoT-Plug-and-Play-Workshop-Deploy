@@ -671,6 +671,15 @@
       }
     },
     {
+      "type": "Microsoft.Maps/accounts/privateAtlases",
+      "apiVersion": "2020-02-01-preview",
+      "name": "[concat(variables('mapName'), '/ADT-Demo-Map-Creator')]",
+      "location": "United States",
+      "dependsOn": [
+          "[resourceId('Microsoft.Maps/accounts', variables('mapName'))]"
+      ]
+    },
+    {
       "type": "Microsoft.DigitalTwins/digitalTwinsInstances",
       "apiVersion": "2020-10-31",
       "name": "[variables('adtName')]",
