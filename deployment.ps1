@@ -1,6 +1,7 @@
 param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey,
       [string] [Parameter(Mandatory=$true)] $resourceGroupName,
-      [string] [Parameter(Mandatory=$true)] $webAppName
+      [string] [Parameter(Mandatory=$true)] $webAppName,
+      [string] [Parameter(Mandatory=$true)] $tsiEnvironmentName
 )
 
 $DeploymentScriptOutputs = @{}
@@ -11,7 +12,8 @@ $ErrorActionPreference = 'silentlyContinue'
 $WarningPreference = "SilentlyContinue"
 
 Install-Module -Name AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
-Install-Module -Name Az.TimeSeriesInsights -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+Install-Module -Name TimeSeriesInsights -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+# Install-Module -Name Az.Websites -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
 
 ##################################################
 # Step 1 : Download sample Drawing data
@@ -366,4 +368,4 @@ $newAppSettings['Azure__TimeSeriesInsights__clientId'] = $adAppId
 # Update web app settings
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
-#Get-AzTimeSeriesInsightsEnvironment -ResourceGroupName $resourceGroupName
+New-AzTimeSeriesInsightsAccessPolicy -EnvironmentName  $tsiEnvironmentName -ResourceGroupName $resourceGroupName -Name "TSI-SP" -PrincipalObjectId $adSpObjectId -Role Reader
