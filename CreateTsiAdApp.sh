@@ -1,11 +1,10 @@
 #!/bin/bash
 
 subscriptionId=$(az account show --query id -o tsv)
-
-az login --identity
-
 adAppName='OpenPlatform-TSI-SP'-"$subscriptionId"
 echo $("adAppName : $adAppName")
+
+az login --identity
 
 servicePrincipalAppId=$(az ad app list --show-mine --query "[?displayName=='$adAppName'].appId" -o tsv)
 echo $("servicePrincipalAppId : ${servicePrincipalAppId}")
