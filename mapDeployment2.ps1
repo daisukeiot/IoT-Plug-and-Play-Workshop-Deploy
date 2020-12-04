@@ -5,12 +5,13 @@ param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey,
 
 $DeploymentScriptOutputs = @{}
 $Debug = $true
-$global:progressPreference = 'silentlyContinue'
-$global:ErrorActionPreference = 'silentlyContinue'
+$progressPreference = 'silentlyContinue'
+$ErrorActionPreference = 'silentlyContinue'
+$WarningPreference = "SilentlyContinue"
 
 Write-Host "Azure Map Subscription key $($mapSubscriptionKey)"
 
-# Install-Module -Name Az.AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+Install-Module -Name AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
 # Install-Module -Name Az.Websites -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
 
 ##################################################
@@ -87,10 +88,27 @@ Start-Sleep -Seconds 5
 ##################################################
 $url = "https://atlas.microsoft.com/dataset/create?api-version=1.0&conversionID=$($conversionId)&type=facility&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
-$resp = Invoke-WebRequest -Uri $url -Method Post
+do {
+    try
+    {
+        $resp = Invoke-WebRequest -Uri $url -Method Post 
+        if (($resp.StatusCode -eq 200) -or ($resp.StatusCode -eq 202))
+        {
+            break;
+        }
+        else
+        {
+            Start-Sleep -Seconds 5
+        }
+    }
+    catch
+    {
+        Write-Host "Retrying.."
+    }
+} while ($true)072786
 Write-Host "response status : $($resp.StatusCode)"
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
-$SleepTime = 1.0
+$SleepTime = 3.0
 
 do {
     $resp = Invoke-RestMethod -Uri $url -Method Get
@@ -114,6 +132,25 @@ Start-Sleep -Seconds 5
 ##################################################
 $url = "https://atlas.microsoft.com/tileset/create/vector?api-version=1.0&datasetID=$($dataSetId)&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
+
+do {
+    try
+    {
+        $resp = Invoke-WebRequest -Uri $url -Method Post 
+        if (($resp.StatusCode -eq 200) -or ($resp.StatusCode -eq 202))
+        {
+            break;
+        }
+        else
+        {
+            Start-Sleep -Seconds 5
+        }
+    }
+    catch
+    {
+        Write-Host "Retrying.."
+    }
+} while ($true)
 $resp = Invoke-WebRequest -Uri $url -Method Post
 Write-Host "response status : $($resp.StatusCode)"
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
@@ -231,7 +268,11 @@ foreach ($mapDataItem in $mapData.mapDataList) {
     $url = "https://atlas.microsoft.com/mapData/$($mapDataItem.udid)?subscription-key=$($mapSubscriptionKey)&api-version=1.0"
     Invoke-RestMethod -Uri $url -Method Delete
 }
-$resourceGroupName = "PnPWS10"
+
+#
+# Update for Webapp
+#
+
 $webapp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName
 $appSettings = $webapp.SiteConfig.AppSettings
 
@@ -243,11 +284,7 @@ ForEach ($item in $appSettings) {
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
-
-#
-# Update for Webapp
-#
-Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
+# Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
 $resGroup = Get-AzResourceGroup -Name $resourceGroupName
 $subscriptionId = ($resGroup.ResourceId.split('/'))[2]
@@ -255,36 +292,68 @@ $subscription = Get-AzSubscription -SubscriptionId $subscriptionId
 $tenantId = $subscription.tenantId
 
 $adAppName = "OpenPlatform-TSI-SP-$($subscriptionId)"
+Write-Host "App Name $($adAppName)"
+
 $adAppUri  = "https://$($adAppName)"
-$adApp = Get-AzureRmADApplication -IdentifierUri $adAppUri
-#$adApp = Get-AzureADApplication -Filter "identifierUris/any(uri:uri eq '$adAppUri')"
+Write-Host "App Uri $($adAppUri)"
+
+#$adApp = Get-AzureRmADApplication -IdentifierUri $adAppUri
+$adApp = Get-AzureADApplication -Filter "identifierUris/any(uri:uri eq '$adAppUri')"
 
 if ($adApp -eq $null)
 {
+    Write-Host "Did not find $($adAppName). Creating..."
     # create new app
-    $adApp = New-AzureRmADApplication --display-name $adAppName --IdentifierUri $adAppUri 
-    #$adApp = New-AzureADApplication -DisplayName $adAppName -IdentifierUris $adAppUri -Oauth2AllowImplicitFlow $true -RequiredResourceAccess '[{"resourceAppId":"120d688d-1518-4cf7-bd38-182f158850b6","resourceAccess":[{"id":"a3a77dfe-67a4-4373-b02a-dfe8485e2248","type":"Scope"}]}]'
+    #$adApp = New-AzureRmADApplication --display-name $adAppName --IdentifierUri $adAppUri 
+    $adApp = New-AzureADApplication -DisplayName $adAppName -IdentifierUris $adAppUri -Oauth2AllowImplicitFlow $true -RequiredResourceAccess '[{"resourceAppId":"120d688d-1518-4cf7-bd38-182f158850b6","resourceAccess":[{"id":"a3a77dfe-67a4-4373-b02a-dfe8485e2248","type":"Scope"}]}]'
 }
 
 $adAppObjectId = $adApp.ObjectId
-#$adAppId = $adApp.AppId
-$adAppId = $adApp.ApplicationId
+Write-Host "App Object Id $($adAppObjectId)"
+
+#$adAppId = $adApp.ApplicationId
+$adAppId = $adApp.AppId
+Write-Host "App Id $($adAppId)"
+
+#$adSp = Get-AzureRmADServicePrincipal -DisplayName $adAppName
+#$adSpObjectId = $adSp.Id
 $adSp = Get-AzureADServicePrincipal -Filter ("appId eq '{0}'" -f $adAppId)
 $adSpObjectId = $adSp.ObjectId
+Write-Host "Service Principal ID $($adSpObjectId)"
 
 $websiteHostName = "https://$($webapp.HostNames)"
+Write-Host "Web Host Name $($websiteHostName)"
+
+#Update-AzureRmADApplication -ObjectId $adAppObjectId -ReplyUrl $websiteHostName
 Set-AzureADApplication -ObjectId $adAppObjectId -ReplyUrls @("$($websiteHostName)")
 
+#$startDate = Get-Date
+#$endDate = $startDate.AddYears(1)
+#$SecureStringPassword = ConvertTo-SecureString -String "i0tp&pworkshopdemo" -AsPlainText -Force
+#$aesManaged = New-Object "System.Security.Cryptography.AesManaged"
+#$aesManaged.Mode = [System.Security.Cryptography.CipherMode]::CBC
+#$aesManaged.Padding = [System.Security.Cryptography.PaddingMode]::Zeros
+#$aesManaged.BlockSize = 128
+#$aesManaged.KeySize = 256
+
+#$aesManaged.GenerateKey()
+#$password = [System.Convert]::ToBase64String($aesManaged.Key)
+
+#New-AzureRmADAppCredential -ObjectId $adAppObjectId -Password $password -StartDate $startDate -EndDate $endDate
 $appSecret = New-AzureADApplicationPasswordCredential -ObjectId $adAppObjectId  -CustomKeyIdentifier "TSISecret"
+$password = $appSecret.Value
+
 Write-Host "App App Id $($adAppId)"
 Write-Host "App Object Id $($adAppObjectId)"
 Write-Host "Tenant ID $($tenantId)"
 Write-Host "SP Object ID $($adSpObjectId)"
 Write-Host "App Secret $($appSecret.Value)"
 
-$newAppSettings['Azure__TimeSeriesInsights__tsiSecret'] = $appSecret.Value
+$newAppSettings['Azure__TimeSeriesInsights__tsiSecret'] = $password
 $newAppSettings['Azure__TimeSeriesInsights__clientId'] = $adAppId
 $newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
 #Install-Module -Name Az.TimeSeriesInsights
+
+Get-AzTimeSeriesInsightsEnvironment -ResourceGroupName $resourceGroupName
