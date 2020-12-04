@@ -318,5 +318,3 @@ $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
-
-$ENV:AZ_SCRIPTS_OUTPUT_PATH = "{\"PSTest\":\"Script\"}"
