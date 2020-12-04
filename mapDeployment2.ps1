@@ -10,6 +10,9 @@ $global:ErrorActionPreference = 'silentlyContinue'
 
 Write-Host "Azure Map Subscription key $($mapSubscriptionKey)"
 
+Install-Module -Name Az.AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+Install-Module -Name Az.Websites -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+
 ##################################################
 # Step 1 : Download sample Drawing data
 ##################################################
@@ -228,7 +231,7 @@ foreach ($mapDataItem in $mapData.mapDataList) {
     $url = "https://atlas.microsoft.com/mapData/$($mapDataItem.udid)?subscription-key=$($mapSubscriptionKey)&api-version=1.0"
     Invoke-RestMethod -Uri $url -Method Delete
 }
-
+$resourceGroupName = "PnPWS10"
 $webapp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName
 $appSettings = $webapp.SiteConfig.AppSettings
 
@@ -240,9 +243,11 @@ ForEach ($item in $appSettings) {
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
-Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
-Install-Module -Name Az.AzureAD
+#
+# Update for Webapp
+#
+Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
 $resGroup = Get-AzResourceGroup -Name $resourceGroupName
 $subscriptionId = ($resGroup.ResourceId.split('/'))[2]
@@ -266,6 +271,9 @@ $adAppId = $adApp.AppId
 $adSp = Get-AzureADServicePrincipal -Filter ("appId eq '{0}'" -f $adAppId)
 $adSpObjectId = $adSp.ObjectId
 
+$websiteHostName = "https://$($webapp.HostNames)"
+Set-AzureADApplication -ObjectId $adAppObjectId -ReplyUrls @("$($websiteHostName)")
+
 $appSecret = New-AzureADApplicationPasswordCredential -ObjectId $adAppObjectId  -CustomKeyIdentifier "TSISecret"
 Write-Host "App App Id $($adAppId)"
 Write-Host "App Object Id $($adAppObjectId)"
@@ -273,4 +281,9 @@ Write-Host "Tenant ID $($tenantId)"
 Write-Host "SP Object ID $($adSpObjectId)"
 Write-Host "App Secret $($appSecret.Value)"
 
-Install-Module -Name Az.TimeSeriesInsights
+$newAppSettings['Azure__TimeSeriesInsights__tsiSecret'] = $appSecret.Value
+$newAppSettings['Azure__TimeSeriesInsights__clientId'] = $adAppId
+$newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
+Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
+
+#Install-Module -Name Az.TimeSeriesInsights
