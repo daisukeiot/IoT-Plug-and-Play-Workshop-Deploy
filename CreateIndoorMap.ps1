@@ -324,51 +324,6 @@ $subscription = Get-AzSubscription -SubscriptionId $subscriptionId
 $tenantId = $subscription.tenantId
 $newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
 
-# Create AD App 
-# $adAppName = "OpenPlatform-TSI-SP-$($subscriptionId)"
-# $adAppUri  = "https://$($adAppName)"
-# $websiteHostName = "https://$($webapp.HostNames)"
-
-# Write-Host "App Name             : $($adAppName)"
-# Write-Host "App Uri              : $($adAppUri)"
-# Write-Host "Web Host Name        : $($websiteHostName)"
-
-# $adApp = Get-AzureRmADApplication -IdentifierUri $adAppUri
-#$adApp = Get-AzureADApplication -Filter "identifierUris/any(uri:uri eq '$adAppUri')"
-# if ($adApp -eq $null)
-# {
-#     Write-Host "Did not find $($adAppName). Creating..."
-#     # $adApp = New-AzureRmADApplication --display-name $adAppName --IdentifierUri $adAppUri 
-#     $adApp = New-AzureADApplication -DisplayName $adAppName -IdentifierUris $adAppUri -Oauth2AllowImplicitFlow $true -RequiredResourceAccess '[{"resourceAppId":"120d688d-1518-4cf7-bd38-182f158850b6","resourceAccess":[{"id":"a3a77dfe-67a4-4373-b02a-dfe8485e2248","type":"Scope"}]}]'
-# }
-
-# $adAppObjectId = $adApp.ObjectId
-# $adAppId = $adApp.AppId
-
-# Write-Host "App Object Id        : $($adAppObjectId)"
-# Write-Host "App Id               : $($adAppId)"
-
-# # Service Principal
-# $adSp = Get-AzureADServicePrincipal -Filter ("appId eq '{0}'" -f $adAppId)
-# $adSpObjectId = $adSp.ObjectId
-# Write-Host "Service Principal ID : $($adSpObjectId)"
-
-# Set-AzureADApplication -ObjectId $adAppObjectId -ReplyUrls @("$($websiteHostName)")
-
-# # Create password
-# $appSecret = New-AzureADApplicationPasswordCredential -ObjectId $adAppObjectId  -CustomKeyIdentifier "TSISecret"
-# $password = $appSecret.Value
-
-# Write-Host "App App ID           : $($adAppId)"
-# Write-Host "App Object ID        : $($adAppObjectId)"
-# Write-Host "Tenant ID            : $($tenantId)"
-# Write-Host "SP Object ID         : $($adSpObjectId)"
-# Write-Host "App Secret           : $($appSecret.Value)"
-
-# $newAppSettings['Azure__TimeSeriesInsights__tsiSecret'] = $password
-# $newAppSettings['Azure__TimeSeriesInsights__clientId'] = $adAppId
-
-# Update web app settings
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
-# New-AzTimeSeriesInsightsAccessPolicy -EnvironmentName  $tsiEnvironmentName -ResourceGroupName $resourceGroupName -Name "TSI-SP" -PrincipalObjectId $adSpObjectId -Role Reader
+$ENV:AZ_SCRIPTS_OUTPUT_PATH = "{\"PSTest\":\"Script\"}"

@@ -35,7 +35,10 @@
     "tsiEventSource": "IoTPnPWS-TSI-EventHubs",
     "mapName": "[concat('IoTPnPWS-MAP-', parameters('UniqueID'))]",
     "adtName": "[concat('IoTPnPWS-ADT-', parameters('UniqueID'))]",
-    "scriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/deployment.ps1",
+    "mapScriptName": "ConfigureMap",
+    "mapScriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/CreateIndoorMap.ps1",
+    "tsiScriptName": "ConfigureTsi",
+    "tsiScriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/CreateTsiAdApp.sh",
     "UserIdentity": "IoTPnPWS-Identity",
     "bootstrapRoleAssignmentId": "[guid(concat(resourceGroup().id, 'contributor'))]",
     "contributorRoleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
@@ -483,6 +486,18 @@
               "value": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))).dataAccessFQDN]"
             },
             {
+              "name": "Azure__TimeSeriesInsights__clientId",
+              "value": "[reference(variables('tsiScriptName')).outputs.appId]"
+            },
+            {
+              "name": "Azure__TimeSeriesInsights__tenantId",
+              "value": "[reference(variables('tsiScriptName')).outputs.tenantId]"
+            },
+            {
+              "name": "Azure__TimeSeriesInsights__tsiSecret",
+              "value": "[reference(variables('tsiScriptName')).outputs.spSecret]"
+            },
+            {
               "name": "Azure__ModelRepository__repoUrl",
               "value": ""
             },
@@ -604,6 +619,22 @@
       ]
     },
     {
+      "type": "Microsoft.TimeSeriesInsights/environments/accesspolicies",
+      "apiVersion": "2020-05-15",
+      "name": "[concat(variables('tsiEnvironment'), '/TSI-SP')]",
+      "scale": null,
+      "properties": {
+        "principalObjectId": "[reference(variables('tsiScriptName')).outputs.spObjectId]",
+        "roles": [
+          "Reader"
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.TimeSeriesInsights/environments/', variables('tsiEnvironment'))]",
+        "[resourceId('Microsoft.Resources/deploymentScripts', variables('tsiScriptName'))]"
+      ]
+    },
+    {
       "type": "Microsoft.DigitalTwins/digitalTwinsInstances",
       "apiVersion": "2020-10-31",
       "name": "[variables('adtName')]",
@@ -651,7 +682,7 @@
     {
       "type": "Microsoft.Resources/deploymentScripts",
       "apiVersion": "2019-10-01-preview",
-      "name": "DeploymentScript",
+      "name": "[variables('mapScriptName')]",
       "location": "[resourceGroup().location]",
       "kind": "AzurePowerShell",
       "identity": {
@@ -663,15 +694,41 @@
       "dependsOn": [
         "[resourceId('Microsoft.Authorization/roleAssignments', variables('bootstrapRoleAssignmentId'))]",
         "[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]",
-        "[resourceId('Microsoft.Web/Sites/sourcecontrols/', variables('webSiteName'),'web')]",
-        "[resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))]"
+        "[resourceId('Microsoft.Web/Sites/sourcecontrols/', variables('webSiteName'),'web')]"
       ],
       "properties": {
         "forceUpdateTag": "[parameters('UniqueID')]",
         "azPowerShellVersion": "5.0",
         "timeout": "PT30M",
-        "arguments": "[concat('-mapSubscriptionKey ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey, ' -resourceGroupName ', resourceGroup().name, ' -webAppName ', variables('webSiteName'), ' -tsiEnvironmentName ', variables('tsiEnvironment'))]",
-        "primaryScriptURI": "[variables('scriptUrl')]",
+        "arguments": "[concat('-mapSubscriptionKey ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey, ' -resourceGroupName ', resourceGroup().name, ' -webAppName ', variables('webSiteName'))]",
+        "primaryScriptURI": "[variables('mapScriptUrl')]",
+        "cleanupPreference": "OnSuccess",
+        "retentionInterval": "P1D"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2019-10-01-preview",
+      "name": "[variables('tsiScriptName')]",
+      "location": "[resourceGroup().location]",
+      "kind": "AzureCLI",
+      "identity": {
+        "type": "userAssigned",
+        "userAssignedIdentities": {
+          "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity'))]": {}
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Authorization/roleAssignments', variables('bootstrapRoleAssignmentId'))]",
+        "[resourceId('Microsoft.Web/Sites/sourcecontrols/', variables('webSiteName'),'web')]",
+        "[resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))]"
+      ],
+      "properties": {
+        "forceUpdateTag": "[parameters('UniqueID')]",
+        "AzCliVersion": "2.0.80",
+        "timeout": "PT30M",
+        "arguments": "",
+        "primaryScriptURI": "[variables('tsiScriptUrl')]",
         "cleanupPreference": "OnSuccess",
         "retentionInterval": "P1D"
       }
@@ -681,6 +738,10 @@
     "_Web_Site_Address": {
       "type": "String",
       "value": "[concat('https://',  variables('webSiteName'),'.azurewebsites.net/')]"
+    },
+    "_Script_Output": {
+      "type": "String",
+      "value": "[reference(variables('mapScriptName')).outputs.PSTest]"
     }
   }
 }
