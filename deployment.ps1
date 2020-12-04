@@ -5,7 +5,7 @@ param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey,
 )
 
 $DeploymentScriptOutputs = @{}
-$Debug = $true
+$Debug = $false
 
 $progressPreference = 'silentlyContinue'
 $ErrorActionPreference = 'silentlyContinue'
@@ -190,7 +190,7 @@ do {
 
             Write-Host "Conversion : $($resp.status)"
         }
-        Start-Sleep -Seconds $SleepTime
+        Start-Sleep -Seconds 3.0
     }
     else {
         Write-Host "Conversion : completed"
@@ -213,7 +213,7 @@ if ($Debug -eq $true) {
 ##################################################
 # Step 6 : Create a feature stateset
 ##################################################
-Start-Sleep -Seconds 5
+Start-Sleep -Seconds 5.0
 $stateSet = '{
     "styles":[
        {
