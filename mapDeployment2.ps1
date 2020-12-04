@@ -247,7 +247,7 @@ $subscriptionId = ($resGroup.ResourceId.split('/'))[2]
 $subscription = Get-AzSubscription -SubscriptionId $subscriptionId
 $tenantId = $subscription.tenantId
 
-$adAppName = "https://OpenPlatform-TSI-SP-$($subscriptionId)"
+$adAppName = "OpenPlatform-TSI-SP-$($subscriptionId)"
 $adAppUri  = "https://$($adAppName)"
 # $adApp = Get-AzureRmADApplication -IdentifierUri $spUri
 $adApp = Get-AzureADApplication -Filter "identifierUris/any(uri:uri eq '$adAppUri')"
@@ -261,7 +261,12 @@ if ($adApp -eq $null)
 
 $adAppObjectId = $adApp.ObjectId
 $adAppId = $adApp.AppId
+$adSp = Get-AzureADServicePrincipal -Filter ("appId eq '{0}'" -f $adAppId)
+$adSpObjectId = $adSp.ObjectId
 
+$appSecret = New-AzureADApplicationPasswordCredential -ObjectId $adAppObjectId  -CustomKeyIdentifier "TSISecret"
 Write-Host "App App Id $($adAppId)"
 Write-Host "App Object Id $($adAppObjectId)"
 Write-Host "Tenant ID $($tenantId)"
+Write-Host "SP Object ID $($adSpObjectId)"
+Write-Host "App Secret $($appSecret.Value)"
