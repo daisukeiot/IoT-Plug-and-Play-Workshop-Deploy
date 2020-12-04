@@ -5,8 +5,9 @@ param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey,
 
 $DeploymentScriptOutputs = @{}
 $Debug = $true
-$global:progressPreference = 'silentlyContinue'
-$global:ErrorActionPreference = 'silentlyContinue'
+$progressPreference = 'silentlyContinue'
+$ErrorActionPreference = 'silentlyContinue'
+$WarningPreference = "SilentlyContinue"
 
 Write-Host "Azure Map Subscription key $($mapSubscriptionKey)"
 
@@ -104,7 +105,7 @@ do {
     {
         Write-Host "Retrying.."
     }
-} while ($true)
+} while ($true)072786
 Write-Host "response status : $($resp.StatusCode)"
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
 $SleepTime = 3.0
@@ -283,7 +284,7 @@ ForEach ($item in $appSettings) {
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
-Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
+# Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
 $resGroup = Get-AzResourceGroup -Name $resourceGroupName
 $subscriptionId = ($resGroup.ResourceId.split('/'))[2]
@@ -291,34 +292,64 @@ $subscription = Get-AzSubscription -SubscriptionId $subscriptionId
 $tenantId = $subscription.tenantId
 
 $adAppName = "OpenPlatform-TSI-SP-$($subscriptionId)"
+Write-Host "App Name $($adAppName)"
+
 $adAppUri  = "https://$($adAppName)"
+Write-Host "App Uri $($adAppUri)"
+
 $adApp = Get-AzureRmADApplication -IdentifierUri $adAppUri
 #$adApp = Get-AzureADApplication -Filter "identifierUris/any(uri:uri eq '$adAppUri')"
 
 if ($adApp -eq $null)
 {
+    Write-Host "Did not find $($adAppName). Creating..."
     # create new app
     $adApp = New-AzureRmADApplication --display-name $adAppName --IdentifierUri $adAppUri 
     #$adApp = New-AzureADApplication -DisplayName $adAppName -IdentifierUris $adAppUri -Oauth2AllowImplicitFlow $true -RequiredResourceAccess '[{"resourceAppId":"120d688d-1518-4cf7-bd38-182f158850b6","resourceAccess":[{"id":"a3a77dfe-67a4-4373-b02a-dfe8485e2248","type":"Scope"}]}]'
 }
 
 $adAppObjectId = $adApp.ObjectId
-#$adAppId = $adApp.AppId
+Write-Host "App Object Id $($adAppObjectId)"
+
 $adAppId = $adApp.ApplicationId
-$adSp = Get-AzureADServicePrincipal -Filter ("appId eq '{0}'" -f $adAppId)
-$adSpObjectId = $adSp.ObjectId
+#$adAppId = $adApp.AppId
+Write-Host "App Id $($adAppId)"
+
+$adSp = Get-AzureRmADServicePrincipal -DisplayName $adAppName
+$adSpObjectId = $adSp.Id
+#$adSp = Get-AzureADServicePrincipal -Filter ("appId eq '{0}'" -f $adAppId)
+#$adSpObjectId = $adSp.ObjectId
+Write-Host "Service Principal ID $($adSpObjectId)"
 
 $websiteHostName = "https://$($webapp.HostNames)"
-Set-AzureADApplication -ObjectId $adAppObjectId -ReplyUrls @("$($websiteHostName)")
+Write-Host "Web Host Name $($websiteHostName)"
 
-$appSecret = New-AzureADApplicationPasswordCredential -ObjectId $adAppObjectId  -CustomKeyIdentifier "TSISecret"
+Update-AzureRmADApplication -ObjectId $adAppObjectId -ReplyUrl $websiteHostName
+#Set-AzureADApplication -ObjectId $adAppObjectId -ReplyUrls @("$($websiteHostName)")
+
+$startDate = Get-Date
+$endDate = $startDate.AddYears(1)
+#$SecureStringPassword = ConvertTo-SecureString -String "i0tp&pworkshopdemo" -AsPlainText -Force
+$aesManaged = New-Object "System.Security.Cryptography.AesManaged"
+$aesManaged.Mode = [System.Security.Cryptography.CipherMode]::CBC
+$aesManaged.Padding = [System.Security.Cryptography.PaddingMode]::Zeros
+$aesManaged.BlockSize = 128
+$aesManaged.KeySize = 256
+
+$aesManaged.GenerateKey()
+$password = [System.Convert]::ToBase64String($aesManaged.Key)
+
+New-AzureRmADAppCredential -ObjectId $adAppObjectId -Password $password -StartDate $startDate -EndDate $endDate
+#$appSecret = New-AzureADApplicationPasswordCredential -ObjectId $adAppObjectId  -CustomKeyIdentifier "TSISecret"
+#$password = $appSecret.Value
+
 Write-Host "App App Id $($adAppId)"
 Write-Host "App Object Id $($adAppObjectId)"
 Write-Host "Tenant ID $($tenantId)"
 Write-Host "SP Object ID $($adSpObjectId)"
 Write-Host "App Secret $($appSecret.Value)"
 
-$newAppSettings['Azure__TimeSeriesInsights__tsiSecret'] = $appSecret.Value
+$newAppSettings['Azure__TimeSeriesInsights__tsiSecret'] = $password
 $newAppSettings['Azure__TimeSeriesInsights__clientId'] = $adAppId
 $newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
