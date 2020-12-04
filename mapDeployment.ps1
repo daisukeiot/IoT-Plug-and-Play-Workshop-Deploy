@@ -235,7 +235,7 @@ foreach ($mapDataItem in $mapData.mapDataList) {
 #
 # Update for Webapp
 #
-$resourceGroupName = "PnPWS10"
+
 $webapp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName
 $appSettings = $webapp.SiteConfig.AppSettings
 
@@ -246,8 +246,6 @@ ForEach ($item in $appSettings) {
 
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
-
-
 
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
