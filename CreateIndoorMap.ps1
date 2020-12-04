@@ -317,13 +317,6 @@ ForEach ($item in $appSettings) {
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
-# Get Tenant ID for TSI
-$resGroup = Get-AzResourceGroup -Name $resourceGroupName
-$subscriptionId = ($resGroup.ResourceId.split('/'))[2]
-$subscription = Get-AzSubscription -SubscriptionId $subscriptionId
-$tenantId = $subscription.tenantId
-$newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
-
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
 $ENV:AZ_SCRIPTS_OUTPUT_PATH = "{\"PSTest\":\"Script\"}"
