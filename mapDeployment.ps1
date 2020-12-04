@@ -87,10 +87,27 @@ Start-Sleep -Seconds 5
 ##################################################
 $url = "https://atlas.microsoft.com/dataset/create?api-version=1.0&conversionID=$($conversionId)&type=facility&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
-$resp = Invoke-WebRequest -Uri $url -Method Post
+do {
+    try
+    {
+        $resp = Invoke-WebRequest -Uri $url -Method Post 
+        if (($resp.StatusCode -eq 200) -or ($resp.StatusCode -eq 202))
+        {
+            break;
+        }
+        else
+        {
+            Start-Sleep -Seconds 5
+        }
+    }
+    catch
+    {
+        Write-Host "Retrying.."
+    }
+} while ($true)
 Write-Host "response status : $($resp.StatusCode)"
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
-$SleepTime = 1.0
+$SleepTime = 3.0
 
 do {
     $resp = Invoke-RestMethod -Uri $url -Method Get
@@ -114,6 +131,25 @@ Start-Sleep -Seconds 5
 ##################################################
 $url = "https://atlas.microsoft.com/tileset/create/vector?api-version=1.0&datasetID=$($dataSetId)&subscription-key=$($mapSubscriptionKey)"
 Write-Host "Calling RESTful API at $($url)"
+
+do {
+    try
+    {
+        $resp = Invoke-WebRequest -Uri $url -Method Post 
+        if (($resp.StatusCode -eq 200) -or ($resp.StatusCode -eq 202))
+        {
+            break;
+        }
+        else
+        {
+            Start-Sleep -Seconds 5
+        }
+    }
+    catch
+    {
+        Write-Host "Retrying.."
+    }
+} while ($true)
 $resp = Invoke-WebRequest -Uri $url -Method Post
 Write-Host "response status : $($resp.StatusCode)"
 $url = "$($resp.Headers.Location)&subscription-key=$($mapSubscriptionKey)" 
