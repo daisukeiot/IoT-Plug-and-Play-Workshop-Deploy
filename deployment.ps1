@@ -12,7 +12,7 @@ $ErrorActionPreference = 'silentlyContinue'
 $WarningPreference = "SilentlyContinue"
 
 Install-Module -Name AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
-Install-Module -Name TimeSeriesInsights -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+Install-Module -Name Az.TimeSeriesInsights -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
 # Install-Module -Name Az.Websites -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
 
 ##################################################
