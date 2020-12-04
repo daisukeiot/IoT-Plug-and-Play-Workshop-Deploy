@@ -10,6 +10,9 @@ $global:ErrorActionPreference = 'silentlyContinue'
 
 Write-Host "Azure Map Subscription key $($mapSubscriptionKey)"
 
+# Install-Module -Name Az.AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+# Install-Module -Name Az.Websites -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+
 ##################################################
 # Step 1 : Download sample Drawing data
 ##################################################
@@ -229,6 +232,10 @@ foreach ($mapDataItem in $mapData.mapDataList) {
     Invoke-RestMethod -Uri $url -Method Delete
 }
 
+#
+# Update for Webapp
+#
+$resourceGroupName = "PnPWS10"
 $webapp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName
 $appSettings = $webapp.SiteConfig.AppSettings
 
@@ -240,4 +247,48 @@ ForEach ($item in $appSettings) {
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 
+
+
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
+
+$resGroup = Get-AzResourceGroup -Name $resourceGroupName
+$subscriptionId = ($resGroup.ResourceId.split('/'))[2]
+$subscription = Get-AzSubscription -SubscriptionId $subscriptionId
+$tenantId = $subscription.tenantId
+
+$adAppName = "OpenPlatform-TSI-SP-$($subscriptionId)"
+$adAppUri  = "https://$($adAppName)"
+$adApp = Get-AzureRmADApplication -IdentifierUri $adAppUri
+#$adApp = Get-AzureADApplication -Filter "identifierUris/any(uri:uri eq '$adAppUri')"
+
+if ($adApp -eq $null)
+{
+    # create new app
+    $adApp = New-AzureRmADApplication --display-name $adAppName --IdentifierUri $adAppUri 
+    #$adApp = New-AzureADApplication -DisplayName $adAppName -IdentifierUris $adAppUri -Oauth2AllowImplicitFlow $true -RequiredResourceAccess '[{"resourceAppId":"120d688d-1518-4cf7-bd38-182f158850b6","resourceAccess":[{"id":"a3a77dfe-67a4-4373-b02a-dfe8485e2248","type":"Scope"}]}]'
+}
+
+$adAppObjectId = $adApp.ObjectId
+#$adAppId = $adApp.AppId
+$adAppId = $adApp.ApplicationId
+$adSp = Get-AzureADServicePrincipal -Filter ("appId eq '{0}'" -f $adAppId)
+$adSpObjectId = $adSp.ObjectId
+
+$websiteHostName = "https://$($webapp.HostNames)"
+Set-AzureADApplication -ObjectId $adAppObjectId -ReplyUrls @("$($websiteHostName)")
+
+$appSecret = New-AzureADApplicationPasswordCredential -ObjectId $adAppObjectId  -CustomKeyIdentifier "TSISecret"
+Write-Host "App App Id $($adAppId)"
+Write-Host "App Object Id $($adAppObjectId)"
+Write-Host "Tenant ID $($tenantId)"
+Write-Host "SP Object ID $($adSpObjectId)"
+Write-Host "App Secret $($appSecret.Value)"
+
+$newAppSettings['Azure__TimeSeriesInsights__tsiSecret'] = $appSecret.Value
+$newAppSettings['Azure__TimeSeriesInsights__clientId'] = $adAppId
+$newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
+Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
+
+#Install-Module -Name Az.TimeSeriesInsights
+
+Get-AzTimeSeriesInsightsEnvironment -ResourceGroupName $resourceGroupName
