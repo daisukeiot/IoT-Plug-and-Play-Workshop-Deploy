@@ -1,6 +1,8 @@
-az login --identity
+#!/bin/bash
 
 subscriptionId=$(az account show --query id -o tsv)
+
+az login --identity
 
 adAppName='OpenPlatform-TSI-SP'-"$subscriptionId"
 echo $("adAppName : $adAppName")
