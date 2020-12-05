@@ -17,8 +17,8 @@ if [ -z "$servicePrincipalObjectId" ]; then
 fi
 servicePrincipalSecret=$(az ad app credential reset --append --id $servicePrincipalAppId --credential-description "TSISecret" --query password -o tsv)
 servicePrincipalTenantId=$(az ad sp show --id $servicePrincipalAppId --query appOwnerTenantId -o tsv)
-echo ("servicePrincipalSecret :   $servicePrincipalSecret")
-echo ("servicePrincipalTenantId : $servicePrincipalTenantId")
+echo "servicePrincipalSecret :   $servicePrincipalSecret"
+echo "servicePrincipalTenantId : $servicePrincipalTenantId"
 json="{\"appId\":\"$servicePrincipalAppId\",\"spSecret\":\"$servicePrincipalSecret\",\"tenantId\":\"$servicePrincipalTenantId\",\"spObjectId\":\"$servicePrincipalObjectId\"}"
 
 az ad app update --id $servicePrincipalAppId --reply-urls "https://${webSiteName}.azurewebsites.net/"
