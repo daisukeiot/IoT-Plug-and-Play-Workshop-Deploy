@@ -17,7 +17,7 @@ Install-Module -Name AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClo
 ##################################################
 # Step 1 : Download sample Drawing data
 ##################################################
-$url = "https://github.com/Azure-Samples/am-creator-indoor-data-examples/raw/master/Sample%20-%20Contoso%20Drawing%20Package.zip"
+$url = "https://github.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/raw/main/MapData/Drawing.zip"
 Invoke-WebRequest -Uri $url -Method Get -OutFile ".\Drawing.zip"
 
 ##################################################

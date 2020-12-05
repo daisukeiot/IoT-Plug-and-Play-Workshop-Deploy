@@ -690,7 +690,8 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Authorization/roleAssignments', variables('roleDefinitionName'))]",
-        "[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]"
+        "[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]",
+        "[resourceId('Microsoft.Web/Sites/sourcecontrols/', variables('webSiteName'),'web')]"
       ],
       "properties": {
         "forceUpdateTag": "MAP",
