@@ -1,7 +1,6 @@
 param([string] [Parameter(Mandatory=$true)] $mapSubscriptionKey,
       [string] [Parameter(Mandatory=$true)] $resourceGroupName,
-      [string] [Parameter(Mandatory=$true)] $webAppName,
-      [string] [Parameter(Mandatory=$true)] $tsiEnvironmentName
+      [string] [Parameter(Mandatory=$true)] $webAppName
 )
 
 $DeploymentScriptOutputs = @{}
