@@ -315,13 +315,6 @@ ForEach ($item in $appSettings) {
     $newAppSettings[$item.Name] = $item.Value
 }
 
-$resGroup = Get-AzResourceGroup -Name $resourceGroupName
-$subscriptionId = ($resGroup.ResourceId.split('/'))[2]
-$subscription = Get-AzSubscription -SubscriptionId $subscriptionId
-$tenantId = $subscription.tenantId
-
-# For Indoor Map
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
-$newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
 $result = Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
