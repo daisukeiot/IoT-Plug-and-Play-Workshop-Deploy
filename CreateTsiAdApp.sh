@@ -4,8 +4,11 @@ az extension add --name timeseriesinsights --yes
 
 uniqueId=$1
 resGroup=$2
-webSiteName="IoTPnPWS-Portal-${uniqueId}"
+webAppName="IoTPnPWS-Portal-${uniqueId}"
 tsiName="IoTPnPWS-TSI-${uniqueId}"
+
+echo "Web App Name : ${webAppName}"
+echo "TSI Env Name : ${tsiName}"
 
 subscriptionId=$(az account show --query id -o tsv)
 adAppName='IoTPnPWS-TSI-AD-App'-"$subscriptionId"
@@ -21,8 +24,8 @@ echo "servicePrincipalSecret :   $servicePrincipalSecret"
 echo "servicePrincipalTenantId : $servicePrincipalTenantId"
 json="{\"appId\":\"$servicePrincipalAppId\",\"spSecret\":\"$servicePrincipalSecret\",\"tenantId\":\"$servicePrincipalTenantId\",\"spObjectId\":\"$servicePrincipalObjectId\"}"
 
-az ad app update --id $servicePrincipalAppId --reply-urls "https://${webSiteName}.azurewebsites.net/"
-az webapp config appsettings set --name $webSiteName --resource-group $resGroup --settings Azure__TimeSeriesInsights__clientId=$servicePrincipalAppId
-az webapp config appsettings set --name $webSiteName --resource-group $resGroup --settings Azure__TimeSeriesInsights__tsiSecret=$servicePrincipalSecret
-az webapp config appsettings set --name $webSiteName --resource-group $resGroup --settings Azure__TimeSeriesInsights__clientId=$servicePrincipalAppId
+az ad app update --id $servicePrincipalAppId --reply-urls "https://${webAppName}.azurewebsites.net/"
+az webapp config appsettings set --name $webAppName --resource-group $resGroup --settings Azure__TimeSeriesInsights__clientId=$servicePrincipalAppId
+az webapp config appsettings set --name $webAppName --resource-group $resGroup --settings Azure__TimeSeriesInsights__tsiSecret=$servicePrincipalSecret
+az webapp config appsettings set --name $webAppName --resource-group $resGroup --settings Azure__TimeSeriesInsights__clientId=$servicePrincipalAppId
 az timeseriesinsights access-policy create -g $resGroup --environment-name $tsiName -n "TSI-SP" --principal-object-id $servicePrincipalObjectId --roles Reader
