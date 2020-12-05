@@ -705,10 +705,6 @@
     }
   ],
   "outputs": {
-    "_Web_Site_Address": {
-      "type": "String",
-      "value": "[concat('https://',  variables('webSiteName'),'.azurewebsites.net/')]"
-    },
     "_Shell_Script_Url": {
       "type": "String",
       "value": "https://shell.azure.com/"
@@ -716,6 +712,10 @@
     "_Post_Deployment_Script": {
       "type": "String",
       "value": "[concat('wget -q ', variables('tsiScriptUrl'), ' -O ./tsi-setup.sh && chmod +x ./tsi-setup.sh && ./tsi-setup.sh ', parameters('UniqueID'), ' ', resourceGroup().name, ' && rm -f ./tsi-setup.sh')]"
+    },
+    "_Web_Site_Address": {
+      "type": "String",
+      "value": "[concat('https://',  variables('webSiteName'),'.azurewebsites.net/')]"
     }
   }
 }
