@@ -1,9 +1,10 @@
 # Deploying Sample IoT Solution
 
-This document walks through :
+This document walks through how to deploy Sample IoT Solution Application.
+There are 2 major steps to deploy the sample IoT Solution.
 
-- How to deploy Sample IoT Solution Application
-- Basic navigation using Raspberry Pi emulator
+1. With Azure Resource Manager (ARM) template, deploy 18 Azure services and configure services
+1. Run the post deployment script to configure access permissions among services
 
 ## Requirements
 
@@ -22,193 +23,117 @@ Click **Deploy to Azure** button below
 > [!TIP]  
 > Right click the button below and select **Open link in new tab** or **Open lin in new window**
 
-## 2. Start Cloud Shell
+## 2. Create a new resource group
 
-> [!NOTE]  
-> Azure Time Series Insights (TSI) requires implicit access permission using Azure Active Directory.  
-> Currently there is no easy way to configure Azure Active Directory though the Azure Resource Manager (ARM) template, therefore, we are asking you to take a number of small manual steps as a temporary solution.  
-> Step 2 ~ 4 are temporary workaround for TSI deployment
-
-An Azure service principal is a security identity used by user-created apps, services, and automation tools to access specific Azure resources.  Instead of having to manage access permission for each user, the web site will use the Service Principal to access data from TSI.
-
-1. When you are at **Custom Deployment** page, open **Cloud Shell**
-
-    ![Deployment 01](media/Deployment-01.png)
-
-1. Make sure to select **bash** in the dropdown list on the top left corner to Cloud Shell
-
-    ![Deployment 02](media/Deployment-02.png)
-
-    You may see a warning message.  Please click **Confirm** to switch to **Bash**
-
-    ![Deployment 03](media/Deployment-03.png)
-
-## 3. Create Service Principal
-
-In Cloud Shell, copy & paste the entire block below
-
-```bash
-wget -q https://raw.githubusercontent.com/microsoft/project15/master/Deploy/tsi-setup.sh -O ./tsi-setup.sh --no-cache && chmod +x tsi-setup.sh && ./tsi-setup.sh
-```
-
-You may copy the command from the **Run this command** field.
-
-> [!TIP]
-> To paste into Cloud Shell console, right click in Cloud Shell pane, then select paste.
-
-![Deployment 04](media/Deployment-04.png)
-
-Once the command completes, you will find 4 output lines in the Cloud Shell. This process takes roughly a minute.  
-
-![Deployment 05](media/Deployment-05.png)
-
-> [!TIP]  
-> If you encounter permission error(s), please make sure you are the administrator or the owner of the account.
-
-> [!TIP]  
-> If you have multiple subscriptions, please make sure to set account before running above commands with :
->  
-> ```bash  
-> az login  
-> az account set --subscription <Your Subscription Name or ID>  
->```
-
-## 4. Enter Service Principal Information into the Template
-
-Now provide Service Principal IDs and password into the template.
-
-Copy & paste **Service Principal App Id**, **Service Principal Password**, **Service Principal Tenant Id**, and **Service Principal Object Id** into respective input boxes.
-
-![Deployment 06](media/Deployment-06.png)
-
-## 5. Start Deployment
+A resource group is a container that holds related resources for an Azure solution.  Similar to folder and files.
 
 1. Select **Subscription** (if you have more than one)
 1. Create a new **Resource Group** by clicking **Create new**  
 
     e.g. **MySolution**
 
+    ![Deployment 01](media/Deployment-01.png)
+
+1. Select **Region**, then click **Review + create**  
+
+    ![Deployment 02](media/Deployment-02.png)
+
+1. Select **Unique ID**
+
+    Some services require global unique names.  This template will create resource with IoTPnPWS-**\<Unique ID\>**.  
+    Rules :
+    - Minimum 5 characters
+    - Maximum 10 characters
+    - Alphanumberic characters only (no special characters)
+
+    > [!TIP]  
+    > To avoid duplicate names and naming rules, recommendation is your name and some numbers, without special characters.
+    > E.g. Joe123
+
+    ![Deployment 03](media/Deployment-03.png)
+
+1. Click **Review + create**
+
+    ![Deployment 04](media/Deployment-04.png)
+
+1. Review settings and click **Create** to start deployment
+
+    ![Deployment 05](media/Deployment-05.png)
+
+1. Wait for deployment to complete
+
+    Typically the deployment process takes about 15 minutes.
+
+    ![Deployment 06](media/Deployment-06.png)
+
+1. Make sure deployment completed successfuly
+
     ![Deployment 07](media/Deployment-07.png)
 
-1. Select **Region** , then click **Review + create**  
+## 3. Post Deployment
+
+Some services require additional settings, such as permission which cannot cover with ARM template.
+We will complete deployment by running a script in **Cloud Shell**.
+
+Azure Cloud Shell is an interactive, authenticated, browser-accessible shell for managing Azure resources. It provides the flexibility of choosing the shell experience that best suits the way you work, either Bash or PowerShell.
+
+1. Switch to **Outputs** pane  
+
+    There are 3 outputs.
+
+    1. Link to **Cloud Shell**
+    1. Post Deployment command
+    1. Link to Web application
 
     ![Deployment 08](media/Deployment-08.png)
 
-1. Review all parameters are filled, then click **Create** to start deployment
+1. Open Cloud Shell  
+
+    Open a new browser tab or window, then navigate to https://shell.azure.com 
+
+    <!-- <a href="https://shell.azure.com" target="_blank"><img src="./media/deploy-to-azure.svg"/></a> -->
+
+1. If you have not used Cloud Shell, you will see this prompt to create a storage
+
+    Click to create storage for Cloud Shell
 
     ![Deployment 09](media/Deployment-09.png)
 
-1. Wait for ~ 15 minutes for the deployment to complete
+1. Confirm you are in **Bash** shell.  If not, please switch to Bash shell
 
     ![Deployment 10](media/Deployment-10.png)
 
-## 5. Post Deployment
-
-1. Once deployment is complete, click on **Outputs**
+1. Click the button to copy **Post Deployment Command**, then right click in Cloud Shell window to paste the command
 
     ![Deployment 11](media/Deployment-11.png)
 
-1. Click the button to copy **Post Deployment Command**, then right click in Cloud Shell window to paste the command
+1. Switch to **Cloud Shell** window, then paste the post deployment command.  Hit enter key to launch the post deployment script.
 
     ![Deployment 12](media/Deployment-12.png)
 
-    > [!NOTE]  
-    > If Cloud Shell is disconnected for timeout, click **Reconnect**
+1. Once the post deployment script completes, you may close Cloud Shell window
 
-1. Hit **Enter** key to run the command
-
-    > [!NOTE]  
-    > The command does not display any output.
-
-1. After the command completes, copy **Web Site Address** and open in a new browser window or tab to see the sample portal site
+1. Copy **Web Site Address** from the outputs page, then navigate to the new web application
 
     ![Deployment 13](media/Deployment-13.png)
 
-## Sample Portal Site
+1. Sample Web Portal application should be ready and running
 
-The sample portal site has 4 big sections.
+    ![Deployment 14](media/Deployment-14.png)
 
-![Deployment 14](media/Deployment-14.png)
+## Sample Portal Application
 
-- Azure Time Series Insights (TSI)  
+The sample portal site has 5 main sections.
 
-    Telemetry and events from devices are sent to TSI.  
-    This sample reads Temperature and Humidity data stored in TSI, and displays line charts
+- IoT Hub  
+    Interact with IoT Hub to perform operations such as adding and removing an IoT Hub device, copy connection string.
+- Device Provisioning Service  
+    Interact with DPS to create and remove individual enrollment, copy symmetric key for provisioning.
+- Telemetry and Event  
+    Displays telemetry and event payload
+- Time Series Insights  
+    If connected devices are IoT Plug and Play enabled, the web app resolves Model ID and displays telemetry data in the line graph.
+- Azure Map  
+    Displays indoor map to demonstrate Azure Digital Twin integration
 
-    More information on TSI : <https://docs.microsoft.com/en-us/azure/time-series-insights/overview-what-is-tsi>
-
-- Azure Maps
-
-    For solutions to integrate location based services (e.g. GPS).  The sample only displays map.
-
-- Device Management  
-
-    Examples of how to register, delete, retrieve device information.  
-
-    > [!NOTE]  
-    > Currently the sample does not provide a way to interact with Device Provisioning Service.
-
-- Device Telemetry and Events  
-
-    Examples of how to receive real-time data from the backend system.  Receives and displays all device telemetry and events.
-
-## Send Temperature from Raspberry Pi Simulator
-
-1. Click on **+Add Device**
-
-    ![Deployment 15](media/Deployment-15.png)
-
-1. Give a name to a new device, then click **+Add**  
-
-    E.g. RP-Simulator
-
-    > [!TIP]  
-    > The name is called **Device ID**.  
-    > A case-sensitive string (up to 128 characters long) of alphanumeric characters plus certain special characters: - . + % _ # * ? ! ( ) , : = @ $ '
-
-    ![Deployment 16](media/Deployment-16.png)
-
-1. Make sure the device just created is selected in the list, and the device is in **Enabled** state.  
-
-    Click on **Copy Connection String**.  
-    We will use this later with Raspberry Pi simulator.
-
-    ![Deployment 17](media/Deployment-17.png)
-
-1. Click on **Raspberry Pi Simulator**
-
-    ![Deployment 18](media/Deployment-18.png)
-
-    This will open a new browser tab.
-
-    ![Deployment 19](media/Deployment-19.png)
-
-1. Browse to line #15 in the top right pane, and replace **[Your IoT hub device connection string]** with the connection string
-
-    ![Deployment 20](media/Deployment-20.png)
-
-    ![Deployment 21](media/Deployment-21.png)
-
-    The line should look like :
-
-    ```c
-    const connectionString = 'HostName=Hub-q7fec.azure-devices.net;DeviceId=RP-Simulator;SharedAccessKey=)(*)()(*)()()=';
-    ```
-
-1. Click **Run** to start sending Temperature and Humidity data
-
-    ![Deployment 22](media/Deployment-22.png)
-
-1. Open the web app from the solution, then click **Refresh** to see temperature and humidity data in line graph
-
-    ![Deployment 23](media/Deployment-23.png)
-
-## Connecting a real device
-
-If you have Raspberry Pi and SenseHat, please visit <https://github.com/daisukeiot/RP4-SenseHat-PnP/tree/WIP>
-
-## Next Step
-
-- Developers : Learn more technical details of the Open Platform Open Platform Developer Guide : [Architecture Overview](../Developer-Guide/Architecture-Overview.md)
-
-[Project 15 from Microsoft - Open Platform](../README.md)
+![Deployment 15](media/Deployment-15.png)

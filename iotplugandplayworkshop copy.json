@@ -1,0 +1,206 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "UniqueID": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique ID.  E.g. your name.  Must be Alphanumeric (a~z, 0~9), and 5~10 characters"
+      },
+      "minLength": 5,
+      "maxLength": 10
+    }
+  },
+  "variables": {
+    "hostingPlanName": "[concat('IoTPnPWS-HostingPlan-', parameters('UniqueID'))]",
+    "storageAccountName": "[toLower(concat('iotpnpwsstor', parameters('UniqueID')))]",
+    "webSiteName": "[concat('IoTPnPWS-Portal-', parameters('UniqueID'))]",
+    "tsiEnvironment": "[concat('IoTPnPWS-TSI-', parameters('UniqueID'))]",
+    "mapName": "[concat('IoTPnPWS-MAP-', parameters('UniqueID'))]",
+    "mapScriptName": "ConfigureMap",
+    "mapScriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/CreateIndoorMap.ps1",
+    "UserIdentity": "IoTPnPWS-Identity",
+    "bootstrapRoleAssignmentId": "[guid(concat(resourceGroup().id, 'contributor'))]",
+    "contributorRoleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+    "envTag": "2020-Nov-25"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('storageAccountName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2"
+    },
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('hostingPlanName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "S1"
+      },
+      "kind": "app",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ],
+      "properties": {
+        "workerSize": 0,
+        "numberOfWorkers": 1
+      }
+    },
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-06-01",
+      "name": "[variables('webSiteName')]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
+      ],
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "properties": {
+        "serverFarmId": "[variables('hostingPlanName')]",
+        "siteConfig": {
+          "webSocketsEnabled": true,
+          "appSettings": [
+            {
+              "name": "Azure__AzureMap__MapKey",
+              "value": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]"
+            },
+            {
+              "name": "Azure__TimeSeriesInsights__tsiUri",
+              "value": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))).dataAccessFQDN]"
+            },
+            {
+              "name": "Azure__TimeSeriesInsights__clientId",
+              "value": ""
+            },
+            {
+              "name": "Azure__TimeSeriesInsights__tenantId",
+              "value": ""
+            },
+            {
+              "name": "Azure__TimeSeriesInsights__tsiSecret",
+              "value": ""
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.TimeSeriesInsights/environments",
+      "apiVersion": "2020-05-15",
+      "name": "[variables('tsiEnvironment')]",
+      "location": "eastasia",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "L1",
+        "capacity": 1
+      },
+      "kind": "Gen2",
+      "properties": {
+        "storageConfiguration": {
+          "accountName": "[variables('storageAccountName')]",
+          "managementKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2018-02-01').keys[0].value]"
+        },
+        "timeSeriesIdProperties": [
+          {
+            "name": "iothub-connection-device-id",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Maps/accounts",
+      "apiVersion": "2018-05-01",
+      "name": "[variables('mapName')]",
+      "location": "global",
+      "sku": {
+        "name": "S1"
+      }
+    },
+    {
+      "type": "Microsoft.Maps/accounts/privateAtlases",
+      "apiVersion": "2020-02-01-preview",
+      "name": "[concat(variables('mapName'), '/', variables('mapName'), '-Creator')]",
+      "location": "United States",
+      "dependsOn": [
+        "[resourceId('Microsoft.Maps/accounts', variables('mapName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2018-11-30",
+      "name": "[variables('UserIdentity')]",
+      "location": "[resourceGroup().location]"
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2018-09-01-preview",
+      "name": "[variables('bootstrapRoleAssignmentId')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('contributorRoleDefinitionId')]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity')), '2018-11-30').principalId]",
+        "scope": "[resourceGroup().id]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deploymentScripts",
+      "apiVersion": "2019-10-01-preview",
+      "name": "[variables('mapScriptName')]",
+      "location": "westus2",
+      "kind": "AzurePowerShell",
+      "identity": {
+        "type": "userAssigned",
+        "userAssignedIdentities": {
+          "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity'))]": {}
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Authorization/roleAssignments', variables('bootstrapRoleAssignmentId'))]",
+        "[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]"
+      ],
+      "properties": {
+        "forceUpdateTag": "MAP",
+        "azPowerShellVersion": "5.0",
+        "timeout": "PT30M",
+        "arguments": "[concat('-mapSubscriptionKey ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey, ' -resourceGroupName ', resourceGroup().name, ' -webAppName ', variables('webSiteName'))]",
+        "primaryScriptURI": "[variables('mapScriptUrl')]",
+        "cleanupPreference": "OnSuccess",
+        "retentionInterval": "P1D"
+      }
+    }
+  ],
+  "outputs": {
+    "_Web_Site_Address": {
+      "type": "String",
+      "value": "[concat('https://',  variables('webSiteName'),'.azurewebsites.net/')]"
+    },
+    "_Shell_Script_Url": {
+      "type": "String",
+      "value": "https://shell.azure.com/"
+    },
+    "_Post_Deployment_Script": {
+      "type": "String",
+      "value": "[concat('https://',  variables('webSiteName'),'.azurewebsites.net/')]"
+    }
+  }
+}
