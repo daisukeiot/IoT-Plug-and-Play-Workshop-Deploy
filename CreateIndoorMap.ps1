@@ -304,8 +304,9 @@ foreach ($mapDataItem in $mapData.mapDataList) {
 ##################################################
 # Step 7 : Create AD App, SP, and add settings to webapp
 ##################################################
-Install-Module -Name AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
-
+# Install-Module -Name AzureAD -SkipPublisherCheck -Force -AcceptLicense -AllowClobber
+# From deployment script, we cannot manipulate AD App because of priviledge.
+#
 $webapp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName
 $appSettings = $webapp.SiteConfig.AppSettings
 
@@ -323,4 +324,4 @@ $tenantId = $subscription.tenantId
 $newAppSettings['Azure__AzureMap__TilesetId'] = $tileSetId
 $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 $newAppSettings['Azure__TimeSeriesInsights__tenantId'] = $tenantId
-Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
+$result = Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
