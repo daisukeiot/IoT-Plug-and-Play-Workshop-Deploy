@@ -39,8 +39,8 @@
     "mapScriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/CreateIndoorMap.ps1",
     "tsiScriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/CreateTsiAdApp.sh",
     "UserIdentity": "IoTPnPWS-Identity",
-    "bootstrapRoleAssignmentId": "[guid(concat(resourceGroup().id, 'contributor'))]",
-    "contributorRoleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+    "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
+    "roleDefinitionName": "[guid(variables('UserIdentity'), variables('roleDefinitionId'))]",
     "envTag": "2020-Nov-25"
   },
   "resources": [
@@ -664,13 +664,13 @@
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
-      "apiVersion": "2018-09-01-preview",
-      "name": "[variables('bootstrapRoleAssignmentId')]",
+      "apiVersion": "2020-04-01-preview",
+      "name": "[variables('roleDefinitionName')]",
       "dependsOn": [
         "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity'))]"
       ],
       "properties": {
-        "roleDefinitionId": "[variables('contributorRoleDefinitionId')]",
+        "roleDefinitionId": "[variables('roleDefinitionId')]",
         "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity')), '2018-11-30').principalId]",
         "scope": "[resourceGroup().id]",
         "principalType": "ServicePrincipal"
@@ -689,7 +689,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Authorization/roleAssignments', variables('bootstrapRoleAssignmentId'))]",
+        "[resourceId('Microsoft.Authorization/roleAssignments', variables('roleDefinitionName'))]",
         "[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]"
       ],
       "properties": {
