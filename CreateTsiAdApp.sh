@@ -2,8 +2,10 @@
 
 az extension add --name timeseriesinsights --yes
 
-webSiteName=$1
+uniqueId=$1
 resGroup=$2
+webSiteName="IoTPnPWS-Portal-${uniqueId}"
+tsiName="IoTPnPWS-TSI-${uniqueId}"
 
 subscriptionId=$(az account show --query id -o tsv)
 adAppName='IoTPnPWS-TSI-AD-App'-"$subscriptionId"
@@ -23,4 +25,4 @@ az ad app update --id $servicePrincipalAppId --reply-urls "https://${webSiteName
 az webapp config appsettings set --name $webSiteName --resource-group $resGroup --settings Azure__TimeSeriesInsights__clientId=$servicePrincipalAppId
 az webapp config appsettings set --name $webSiteName --resource-group $resGroup --settings Azure__TimeSeriesInsights__tsiSecret=$servicePrincipalSecret
 az webapp config appsettings set --name $webSiteName --resource-group $resGroup --settings Azure__TimeSeriesInsights__clientId=$servicePrincipalAppId
-az timeseriesinsights access-policy create -g $resGroup --environment-name {env} -n "TSI-SP" --principal-object-id $servicePrincipalObjectId --roles Reader
+az timeseriesinsights access-policy create -g $resGroup --environment-name $tsiName -n "TSI-SP" --principal-object-id $servicePrincipalObjectId --roles Reader
