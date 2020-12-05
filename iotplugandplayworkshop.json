@@ -37,7 +37,6 @@
     "adtName": "[concat('IoTPnPWS-ADT-', parameters('UniqueID'))]",
     "mapScriptName": "ConfigureMap",
     "mapScriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/CreateIndoorMap.ps1",
-    "tsiScriptName": "ConfigureTsi",
     "tsiScriptUrl": "https://raw.githubusercontent.com/daisukeiot/IoT-Plug-and-Play-Workshop-Deploy/main/CreateTsiAdApp.sh",
     "UserIdentity": "IoTPnPWS-Identity",
     "bootstrapRoleAssignmentId": "[guid(concat(resourceGroup().id, 'contributor'))]",
@@ -458,7 +457,6 @@
       "name": "[variables('webSiteName')]",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))]",
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
       ],
       "tags": {
@@ -487,15 +485,15 @@
             },
             {
               "name": "Azure__TimeSeriesInsights__clientId",
-              "value": "[reference(variables('tsiScriptName')).outputs.appId]"
+              "value": ""
             },
             {
               "name": "Azure__TimeSeriesInsights__tenantId",
-              "value": "[reference(variables('tsiScriptName')).outputs.tenantId]"
+              "value": ""
             },
             {
               "name": "Azure__TimeSeriesInsights__tsiSecret",
-              "value": "[reference(variables('tsiScriptName')).outputs.spSecret]"
+              "value": ""
             },
             {
               "name": "Azure__ModelRepository__repoUrl",
@@ -618,22 +616,21 @@
         }
       ]
     },
-    {
-      "type": "Microsoft.TimeSeriesInsights/environments/accesspolicies",
-      "apiVersion": "2020-05-15",
-      "name": "[concat(variables('tsiEnvironment'), '/TSI-SP')]",
-      "scale": null,
-      "properties": {
-        "principalObjectId": "[reference(variables('tsiScriptName')).outputs.spObjectId]",
-        "roles": [
-          "Reader"
-        ]
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.TimeSeriesInsights/environments/', variables('tsiEnvironment'))]",
-        "[resourceId('Microsoft.Resources/deploymentScripts', variables('tsiScriptName'))]"
-      ]
-    },
+    // {
+    //   "type": "Microsoft.TimeSeriesInsights/environments/accesspolicies",
+    //   "apiVersion": "2020-05-15",
+    //   "name": "[concat(variables('tsiEnvironment'), '/TSI-SP')]",
+    //   "scale": null,
+    //   "properties": {
+    //     "principalObjectId": "[reference(variables('tsiScriptName')).outputs.spObjectId]",
+    //     "roles": [
+    //       "Reader"
+    //     ]
+    //   },
+    //   "dependsOn": [
+    //     "[resourceId('Microsoft.TimeSeriesInsights/environments/', variables('tsiEnvironment'))]"
+    //   ]
+    // },
     {
       "type": "Microsoft.DigitalTwins/digitalTwinsInstances",
       "apiVersion": "2020-10-31",
@@ -663,7 +660,7 @@
       "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
       "apiVersion": "2018-11-30",
       "name": "[variables('UserIdentity')]",
-      "location": "[resourceGroup().location]"
+      "location": "westus2"
     },
     {
       "type": "Microsoft.Authorization/roleAssignments",
@@ -683,7 +680,7 @@
       "type": "Microsoft.Resources/deploymentScripts",
       "apiVersion": "2019-10-01-preview",
       "name": "[variables('mapScriptName')]",
-      "location": "[resourceGroup().location]",
+      "location": "westus2",
       "kind": "AzurePowerShell",
       "identity": {
         "type": "userAssigned",
@@ -693,42 +690,14 @@
       },
       "dependsOn": [
         "[resourceId('Microsoft.Authorization/roleAssignments', variables('bootstrapRoleAssignmentId'))]",
-        "[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]",
-        "[resourceId('Microsoft.Web/Sites/sourcecontrols/', variables('webSiteName'),'web')]"
+        "[resourceId('Microsoft.Maps/accounts/privateAtlases', variables('mapName'), concat(variables('mapName'), '-Creator'))]"
       ],
       "properties": {
-        "forceUpdateTag": "[parameters('UniqueID')]",
+        "forceUpdateTag": "MAP",
         "azPowerShellVersion": "5.0",
         "timeout": "PT30M",
         "arguments": "[concat('-mapSubscriptionKey ', listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey, ' -resourceGroupName ', resourceGroup().name, ' -webAppName ', variables('webSiteName'))]",
         "primaryScriptURI": "[variables('mapScriptUrl')]",
-        "cleanupPreference": "OnSuccess",
-        "retentionInterval": "P1D"
-      }
-    },
-    {
-      "type": "Microsoft.Resources/deploymentScripts",
-      "apiVersion": "2019-10-01-preview",
-      "name": "[variables('tsiScriptName')]",
-      "location": "[resourceGroup().location]",
-      "kind": "AzureCLI",
-      "identity": {
-        "type": "userAssigned",
-        "userAssignedIdentities": {
-          "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('UserIdentity'))]": {}
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Authorization/roleAssignments', variables('bootstrapRoleAssignmentId'))]",
-        "[resourceId('Microsoft.Web/Sites/sourcecontrols/', variables('webSiteName'),'web')]",
-        "[resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsiEnvironment'))]"
-      ],
-      "properties": {
-        "forceUpdateTag": "[parameters('UniqueID')]",
-        "AzCliVersion": "2.0.80",
-        "timeout": "PT30M",
-        "arguments": "",
-        "primaryScriptURI": "[variables('tsiScriptUrl')]",
         "cleanupPreference": "OnSuccess",
         "retentionInterval": "P1D"
       }
@@ -739,9 +708,13 @@
       "type": "String",
       "value": "[concat('https://',  variables('webSiteName'),'.azurewebsites.net/')]"
     },
-    "_Script_Output": {
+    "_Shell_Script_Url": {
       "type": "String",
-      "value": "[reference(variables('mapScriptName')).outputs.PSTest]"
+      "value": "https://shell.azure.com/"
+    },
+    "_Post_Deployment_Script": {
+      "type": "String",
+      "value": "[concat('wget -q ', variables('tsiScriptUrl'), ' -O ./tsi-setup.sh && chmod +x ./tsi-setup.sh && ./tsi-setup.sh ', parameters('UniqueID'), ' ', resourceGroup().name, ' && rm -f ./tsi-setup.sh')]"
     }
   }
 }
