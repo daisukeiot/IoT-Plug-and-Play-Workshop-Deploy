@@ -321,10 +321,10 @@ $newAppSettings['Azure__AzureMap__StatesetId'] = $stateSetId
 Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettings $newAppSettings
 
 $funcitonsApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $functionsAppName
-$newAppSettings = @{}
+$newFunctionAppSettings = @{}
 ForEach ($item in $appSettings) {
-    $newAppSettings[$item.Name] = $item.Value
+    $newFunctionAppSettings[$item.Name] = $item.Value
 }
 
-$newAppSettings['StatesetId'] = $stateSetId
-Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $functionsAppName  -AppSettings $newAppSettings
+$newFunctionAppSettings['StatesetId'] = $stateSetId
+Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $functionsAppName  -AppSettings $newFunctionAppSettings
