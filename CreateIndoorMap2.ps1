@@ -322,7 +322,8 @@ Set-AzWebApp -ResourceGroupName $resourceGroupName -Name $webAppName  -AppSettin
 
 $funcitonsApp = Get-AzWebApp -ResourceGroupName $resourceGroupName -Name $functionsAppName
 $newFunctionAppSettings = @{}
-ForEach ($item in $appSettings) {
+$functionAppSettings = $funcitonsApp.SiteConfig.AppSettings
+ForEach ($item in $functionAppSettings) {
     $newFunctionAppSettings[$item.Name] = $item.Value
 }
 
