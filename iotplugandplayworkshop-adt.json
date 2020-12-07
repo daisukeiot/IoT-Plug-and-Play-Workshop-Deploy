@@ -44,7 +44,7 @@
     "adtIdentity" : "functionsidentity",
     "adtRoleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'bcd981a7-7f74-457b-83e1-cceb9e632ffe')]",
     "adtRoleDefinitionName": "[guid(variables('adtIdentity'), variables('adtRoleDefinitionId'))]",
-    "adt2mapEventGridTopic": "Adt2MapTopic",
+    "adt2mapEventGridTopic": "[concat('Adt2MapTopic-', parameters('UniqueID'))]",
     "envTag": "2020-Nov-25",
     "AdtRbacOwnerRoleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
     "AdtOwnerRoleDefinitionId": "[concat('/subscriptions/', subscription().subscriptionId, '/providers/Microsoft.Authorization/roleDefinitions/', 'bcd981a7-7f74-457b-83e1-cceb9e632ffe')]",
