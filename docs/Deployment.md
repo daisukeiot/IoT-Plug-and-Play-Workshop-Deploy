@@ -13,12 +13,18 @@ There are 2 major steps to deploy the sample IoT Solution.
     <https://azure.microsoft.com/free/>  
     You must be an administrator or an owner of the subscription  
 - A PC with Web Browser
+- Azure Resource Providers
+    Please ensure Container Instance is enabled
 
 ## 1. Start Deployment
 
 Click **Deploy to Azure** button below  
 
 <a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdaisukeiot%2FIoT-Plug-and-Play-Workshop-Deploy%2Fmain%2Fiotplugandplayworkshop.json" target="_blank"><img src="./media/deploy-to-azure.svg"/></a>
+
+ADT Version (For testing)
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fdaisukeiot%2FIoT-Plug-and-Play-Workshop-Deploy%2Fmain%2Fiotplugandplayworkshop-adt.json" target="_blank"><img src="./media/deploy-to-azure.svg"/></a>
+
 
 > [!TIP]  
 > Right click the button below and select **Open link in new tab** or **Open lin in new window**
@@ -75,7 +81,7 @@ A resource group is a container that holds related resources for an Azure soluti
 Some services require additional settings, such as permission which cannot cover with ARM template.
 We will complete deployment by running a script in **Cloud Shell**.
 
-Azure Cloud Shell is an interactive, authenticated, browser-accessible shell for managing Azure resources. It provides the flexibility of choosing the shell experience that best suits the way you work, either Bash or PowerShell.
+[Azure Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) is an interactive, authenticated, browser-accessible shell for managing Azure resources. It provides the flexibility of choosing the shell experience that best suits the way you work, either Bash or PowerShell.
 
 1. Switch to **Outputs** pane  
 
@@ -87,11 +93,11 @@ Azure Cloud Shell is an interactive, authenticated, browser-accessible shell for
 
     ![Deployment 08](media/Deployment-08.png)
 
-1. Open Cloud Shell  
+1. Launch Cloud Shell  
 
     Open a new browser tab or window, then navigate to https://shell.azure.com 
 
-    <!-- <a href="https://shell.azure.com" target="_blank"><img src="./media/deploy-to-azure.svg"/></a> -->
+    <a href="https://shell.azure.com" target="_blank"><img src="./media/launchcloudshell.png"/></a>
 
 1. If you have not used Cloud Shell, you will see this prompt to create a storage
 
