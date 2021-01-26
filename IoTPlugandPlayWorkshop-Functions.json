@@ -34,49 +34,10 @@
       "webappName": "[concat(parameters('ResourcePrefix'), '-Portal-', parameters('UniqueID'))]",
       "webappUrl" : "[toLower(concat('https://', parameters('ResourcePrefix'), '-Portal-', parameters('UniqueID'), '.azurewebsites.net'))]"
     },
-    "eventHubs" : {
-      "nameSpace": "[concat(parameters('ResourcePrefix'), '-EventHubs-', parameters('UniqueID'))]",
-      "hubName": "devicetelemetryhub",
-      "cgFunctions": "telemetry-functions-cg",
-      "cgTsi": "telemetry-tsi-cg",
-      "ruleListen": "TelemetryListenRule",
-      "ruleSend": "TelemetrySendRule"
-    },
-    "adt" : {
-      "name": "[concat(parameters('ResourcePrefix'), '-ADT-', parameters('UniqueID'))]",
-      "location": "westus2",
-      "identity": "functionsidentity",
-      "roleId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'bcd981a7-7f74-457b-83e1-cceb9e632ffe')]"
-    },
-    "signalrName": "[concat(parameters('ResourcePrefix'), '-SignalR-', parameters('UniqueID'))]",
-    "mapName": "[concat(parameters('ResourcePrefix'), '-MAP-', parameters('UniqueID'))]",
     "storageName": "[toLower(concat('iotpnpwsstor', parameters('UniqueID')))]",
     "envTag": "[parameters('envTag')]"
   },
   "resources": [
-    // Storage Account
-    {
-      "name": "[variables('storageName')]",
-      "type": "Microsoft.Storage/storageAccounts",
-      "apiVersion": "2019-06-01",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Standard_LRS"
-      },
-      "kind": "StorageV2",
-      "properties": {}
-    },
-    // Server Farms
-    {
-      "name": "[variables('webApp').hostingPlan]",
-      "type": "Microsoft.Web/serverfarms",
-      "apiVersion": "2020-09-01",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "S1"
-      },
-      "properties": {}
-    },
     // Functions App
     {
       "name": "[variables('webApp').functionsName]",
@@ -88,8 +49,6 @@
         "ENV": "[variables('envTag')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
-        "[resourceId('Microsoft.Web/serverfarms', variables('webApp').hostingPlan)]"
       ],
       "identity": {
         "type": "SystemAssigned"
