@@ -125,6 +125,19 @@
       },
       "properties": {}
     },
+    {
+      "name": "[concat(variables('eventHubs').nameSpace, '/GlobalSendOnlyRule')]",
+      "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
+      "apiVersion": "2017-04-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]"
+      ],
+      "properties": {
+        "rights": [
+          "Send"
+        ]
+      }
+    },
     // Functions App
     {
       "name": "[variables('webApp').functionsName]",
