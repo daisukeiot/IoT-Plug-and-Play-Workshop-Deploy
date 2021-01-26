@@ -18,14 +18,6 @@
       "type": "string",
       "defaultValue": "main"
     },
-    "PrivateModelRepo" : {
-      "type": "string",
-      "defaultValue": "https://raw.githubusercontent.com/daisukeiot/iot-plugandplay-models/"
-    },
-    "PrivateModelBranch" : {
-      "type": "string",
-      "defaultValue": "privatemodels"
-    },
     "ResourcePrefix" : {
         "type": "string",
       "defaultValue": "IoTPnPWS"
@@ -62,46 +54,6 @@
     "envTag": "[parameters('envTag')]"
   },
   "resources": [
-    // SignalR
-    {
-      "name": "[variables('signalrName')]",
-      "type": "Microsoft.SignalRService/SignalR",
-      "apiVersion": "2020-05-01",
-      "location": "[resourceGroup().location]",
-      "sku": {
-        "name": "Standard_S1",
-        "tier": "Standard",
-        "size": "S1",
-        "capacity": 1
-      },
-      "properties": {}
-    },
-    // Maps
-    {
-      "name": "[variables('mapName')]",
-      "type": "Microsoft.Maps/accounts",
-      "apiVersion": "2018-05-01",
-      "location": "global",
-      "sku": {
-        "name": "S1"
-      }
-    },
-    // ADT
-    {
-      "name": "[variables('adt').name]",
-      "type": "Microsoft.DigitalTwins/digitalTwinsInstances",
-      "apiVersion": "2020-10-31",
-      "location": "[variables('adt').location]",
-      "properties": {}
-    },
-    // Event Hubs
-    {
-      "name": "[variables('eventHubs').nameSpace]",
-      "type": "Microsoft.EventHub/namespaces",
-      "apiVersion": "2018-01-01-preview",
-      "location": "[resourceGroup().location]",
-      "properties": {}
-    },
     // Storage Account
     {
       "name": "[variables('storageName')]",
@@ -163,29 +115,6 @@
         }
       },
       "resources": [
-        {
-          "name": "appsettings",
-          "type": "config",
-          "apiVersion": "2020-09-01",
-          "dependsOn": [
-            "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
-            "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
-            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
-            "[resourceId('Microsoft.Web/Sites', variables('webApp').functionsName)]",
-            "[resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)]"
-          ],
-          "properties": {
-            "FUNCTIONS_EXTENSION_VERSION": "~3",
-            "AzureWebJobsSecretStorageType": "Files",
-            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-            "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-            //"EVENTHUB_CS":"[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').hubName,variables('eventHubs').ruleListen),'2017-04-01').primaryConnectionString]",
-            "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
-            "ADT_HOST_URL": "[concat('https://', reference(resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)).hostName)]",
-            "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]",
-            "ModelRepository": "[concat(parameters('PrivateModelRepo'), parameters('PrivateModelBranch'))]"
-          }
-        },
         {
           "type": "sourcecontrols",
           "apiVersion": "2020-09-01",
