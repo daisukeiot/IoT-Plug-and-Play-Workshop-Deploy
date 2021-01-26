@@ -100,7 +100,22 @@
       "type": "Microsoft.EventHub/namespaces",
       "apiVersion": "2018-01-01-preview",
       "location": "[resourceGroup().location]",
-      "properties": {}
+      "properties": {},
+      "resources": [
+        {
+          "name": "[concat(variables('eventHubs').nameSpace, '/GlobalSendOnlyRule')]",
+          "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
+          "apiVersion": "2017-04-01",
+          "dependsOn": [
+            "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]"
+          ],
+          "properties": {
+            "rights": [
+              "Send"
+            ]
+          }
+        }
+      ]
     },
     // Storage Account
     {
@@ -124,19 +139,6 @@
         "name": "S1"
       },
       "properties": {}
-    },
-    {
-      "name": "[concat(variables('eventHubs').nameSpace, '/GlobalSendOnlyRule')]",
-      "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
-      "apiVersion": "2017-04-01",
-      "dependsOn": [
-        "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]"
-      ],
-      "properties": {
-        "rights": [
-          "Send"
-        ]
-      }
     },
     // Functions App
     {
