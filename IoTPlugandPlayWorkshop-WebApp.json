@@ -110,7 +110,18 @@
         "capacity": 1
       },
       "kind": "Gen2",
-      "properties": {}
+      "properties": {
+        "storageConfiguration": {
+          "accountName": "[variables('storageName')]",
+          "managementKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value]"
+        },
+        "timeSeriesIdProperties": [
+          {
+            "name": "iothub-connection-device-id",
+            "type": "string"
+          }
+        ]
+      }
     },
     // DPS
     {
