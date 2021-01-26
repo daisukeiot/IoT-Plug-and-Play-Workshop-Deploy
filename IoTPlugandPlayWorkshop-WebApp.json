@@ -187,7 +187,10 @@
           "name": "appsettings",
           "type": "config",
           "dependsOn": [
+            "[resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsi').environment)]",
             "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
+            "[resourceId('Microsoft.Devices/IotHubs', variables('iothub').name)]",
+            "[resourceId('Microsoft.Devices/provisioningServices', variables('dpsName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
             "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]",
             "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').webappName, 'web')]"
@@ -202,6 +205,7 @@
             "Azure__TimeSeriesInsights__tsiSecret": "",
             "Azure__Dps__IdScope": "[reference(resourceId('Microsoft.Devices/ProvisioningServices',variables('dpsName'))).idScope]",
             "Azure__Dps__ConnectionString": "[concat('HostName=', variables('dpsName'), '.azure-devices-provisioning.net;SharedAccessKeyName=provisioningserviceowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/provisioningServices', variables('dpsName')), providers('Microsoft.Devices', 'provisioningServices').apiVersions[0]).value[0].primaryKey)]",
+            "Azure__Dps__WebHookUrl":"[listsecrets(resourceId('Microsoft.Web/sites/functions', variables('webApp').functionsName, 'Dps_Processor'), '2020-09-01').trigger_url]",
             "Azure__ModelRepository__repoUrl":"[concat(parameters('PrivateModelRepo'), parameters('PrivateModelBranch'))]",
             "Azure__GitHub__token":""
           }
