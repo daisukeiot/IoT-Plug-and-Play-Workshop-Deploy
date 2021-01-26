@@ -43,6 +43,7 @@
       "webappUrl" : "[toLower(concat('https://', parameters('ResourcePrefix'), '-Portal-', parameters('UniqueID'), '.azurewebsites.net'))]"
     },
     "storageName": "[toLower(concat('iotpnpwsstor', parameters('UniqueID')))]",
+    "signalrName": "[concat(parameters('ResourcePrefix'), '-SignalR-', parameters('UniqueID'))]",
     "envTag": "[parameters('envTag')]"
   },
   "resources": [
@@ -110,6 +111,7 @@
             "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').webappName, 'web')]"
           ],
           "properties": {
+            "Azure__SignalR__ConnectionString" : "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
             "Azure__TimeSeriesInsights__clientId": "",
             "Azure__TimeSeriesInsights__tenantId": "",
             "Azure__TimeSeriesInsights__tsiSecret": "",
