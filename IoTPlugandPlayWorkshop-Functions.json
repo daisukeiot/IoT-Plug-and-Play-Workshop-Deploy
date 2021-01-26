@@ -117,24 +117,6 @@
       },
       "resources": [
         {
-          "apiVersion": "2020-09-01",
-          "name": "appsettings",
-          "type": "config",
-          "dependsOn": [
-            "[resourceId('Microsoft.Web/Sites', variables('webApp').functionsName)]",
-            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
-            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').functionsName, 'web')]"
-          ],
-          "properties": {
-            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-            "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-            "FUNCTIONS_EXTENSION_VERSION" : "~3",
-            "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-            "ModelRepository": "[concat(parameters('PrivateModelRepo'), parameters('PrivateModelBranch'))]",
-            "GitToken":""
-          }
-        },
-        {
           "type": "sourcecontrols",
           "apiVersion": "2020-09-01",
           "name": "web",
