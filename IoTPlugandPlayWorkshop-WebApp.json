@@ -36,6 +36,19 @@
     }
   },
   "variables": {
+    "iothub" : {
+      "name" : "[concat('IoTPnPWS-Hub-', parameters('UniqueID'))]",
+      "eventHubsCG" : "[concat('IoTPnPWS-Hub-', parameters('UniqueID'), '/events/eventhubs-cg')]",
+      "systemTopic": "IoTHubSystemTopic"
+    },
+    "signalrName": "[concat('IoTPnPWS-SignalR-', parameters('UniqueID'))]",
+    "dpsName": "[concat('IoTPnPWS-DPS-', parameters('UniqueID'))]",
+    "tsi" : {
+      "environment": "[concat('IoTPnPWS-TSI-', parameters('UniqueID'))]",
+      "location": "eastasia",
+      "eventSource": "IoTPnPWS-TSI-EventHubs"
+    },
+    "mapName": "[concat('IoTPnPWS-MAP-', parameters('UniqueID'))]",
     "webApp" : {
       "hostingPlan": "[concat(parameters('ResourcePrefix'), '-HostingPlan-', parameters('UniqueID'))]",
       "functionsName": "[concat(parameters('ResourcePrefix'), '-Functions-', parameters('UniqueID'))]",
@@ -100,6 +113,29 @@
         }
       },
       "resources": [
+        {
+          "apiVersion": "2020-09-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+            "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]",
+            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').webappName, 'web')]"
+          ],
+          "properties": {
+            "Azure__SignalR__ConnectionString" : "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
+            "Azure__IoTHub__ConnectionString" : "[concat('HostName=', reference(resourceId('Microsoft.Devices/IoTHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).hostName, ';SharedAccessKeyName=iothubowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/IotHubs', variables('iothub').name), providers('Microsoft.Devices', 'IoTHubs').apiVersions[0]).value[0].primaryKey)]",
+            "Azure__AzureMap__MapKey" : "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]",
+            "Azure__TimeSeriesInsights__tsiUri": "[reference(resourceId('Microsoft.TimeSeriesInsights/environments', variables('tsi').environment)).dataAccessFQDN]",
+            "Azure__TimeSeriesInsights__clientId": "",
+            "Azure__TimeSeriesInsights__tenantId": "",
+            "Azure__TimeSeriesInsights__tsiSecret": "",
+            "Azure__Dps__IdScope": "[reference(resourceId('Microsoft.Devices/ProvisioningServices',variables('dpsName'))).idScope]",
+            "Azure__Dps__ConnectionString": "[concat('HostName=', variables('dpsName'), '.azure-devices-provisioning.net;SharedAccessKeyName=provisioningserviceowner;SharedAccessKey=', listKeys(resourceId('Microsoft.Devices/provisioningServices', variables('dpsName')), providers('Microsoft.Devices', 'provisioningServices').apiVersions[0]).value[0].primaryKey)]",
+            "Azure__ModelRepository__repoUrl":"[concat(parameters('PrivateModelRepo'), parameters('PrivateModelBranch'))]",
+            "Azure__GitHub__token":""
+          }
+        },
         {
           "type": "sourcecontrols",
           "apiVersion": "2020-09-01",
