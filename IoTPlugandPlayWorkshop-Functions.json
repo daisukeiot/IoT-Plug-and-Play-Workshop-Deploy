@@ -172,7 +172,6 @@
             "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
             "[resourceId('Microsoft.Web/Sites', variables('webApp').functionsName)]",
-            "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').hubName, variables('eventHubs').ruleListen)]",
             "[resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)]"
           ],
           "properties": {
