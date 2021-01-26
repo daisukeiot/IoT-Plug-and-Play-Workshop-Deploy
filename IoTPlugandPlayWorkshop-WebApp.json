@@ -1,0 +1,132 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-08-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "UniqueID": {
+      "type": "string",
+      "metadata": {
+        "description": "Unique ID.  E.g. your name.  Must be Alphanumeric (a~z, 0~9), and 5~12 characters"
+      },
+      "minLength": 5,
+      "maxLength": 12
+    },
+    "GitHubURL" : {
+      "type": "string",
+      "defaultValue": "https://github.com/microsoft/IoT-Plug-and-Play-Workshop-WebApp.git"
+    },
+    "GitHubBranch" : {
+      "type": "string",
+      "defaultValue": "main"
+    },
+    "PrivateModelRepo" : {
+      "type": "string",
+      "defaultValue": "https://raw.githubusercontent.com/daisukeiot/iot-plugandplay-models/"
+    },
+    "PrivateModelBranch" : {
+      "type": "string",
+      "defaultValue": "privatemodels"
+    },
+    "ResourcePrefix" : {
+        "type": "string",
+      "defaultValue": "IoTPnPWS"
+    },
+    "envTag" : {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "webApp" : {
+      "hostingPlan": "[concat(parameters('ResourcePrefix'), '-HostingPlan-', parameters('UniqueID'))]",
+      "functionsName": "[concat(parameters('ResourcePrefix'), '-Functions-', parameters('UniqueID'))]",
+      "webappName": "[concat(parameters('ResourcePrefix'), '-Portal-', parameters('UniqueID'))]",
+      "webappUrl" : "[toLower(concat('https://', parameters('ResourcePrefix'), '-Portal-', parameters('UniqueID'), '.azurewebsites.net'))]"
+    },
+    "storageName": "[toLower(concat('iotpnpwsstor', parameters('UniqueID')))]",
+    "envTag": "[parameters('envTag')]"
+  },
+  "resources": [
+    // Storage Account
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('storageName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2"
+    },
+    // Server Farms
+    {
+      "type": "Microsoft.Web/serverfarms",
+      "apiVersion": "2018-11-01",
+      "name": "[variables('webApp').hostingPlan]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "S1"
+      },
+      "kind": "app",
+      "properties": {
+        "workerSize": 0,
+        "numberOfWorkers": 1
+      }
+    },
+    // WebApp
+    {
+      "type": "Microsoft.Web/sites",
+      "apiVersion": "2020-09-01",
+      "name": "[variables('webApp').webappName]",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Web/serverfarms', variables('webApp').hostingPlan)]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]"
+      ],
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "properties": {
+        "serverFarmId": "[variables('webApp').hostingPlan]",
+        "siteConfig": {
+          "webSocketsEnabled": true,
+          "appSettings": [
+          ]
+        }
+      },
+      "resources": [
+        {
+          "apiVersion": "2020-09-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+            "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]",
+            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').webappName, 'web')]"
+          ],
+          "properties": {
+            "Azure__ModelRepository__repoUrl":"[concat(parameters('PrivateModelRepo'), parameters('PrivateModelBranch'))]",
+            "Azure__GitHub__token":""
+          }
+        },
+        {
+          "type": "sourcecontrols",
+          "apiVersion": "2020-09-01",
+          "name": "web",
+          "dependsOn": [
+            "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]"
+          ],
+          "properties": {
+            "repoUrl": "[parameters('GitHubURL')]",
+            "branch": "[parameters('GitHubBranch')]",
+            "IsManualIntegration": true
+          }
+        }
+      ]
+    }
+  ]
+}
