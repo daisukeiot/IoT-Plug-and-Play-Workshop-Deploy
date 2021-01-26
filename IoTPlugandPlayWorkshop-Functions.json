@@ -100,22 +100,7 @@
       "type": "Microsoft.EventHub/namespaces",
       "apiVersion": "2018-01-01-preview",
       "location": "[resourceGroup().location]",
-      "properties": {},
-      "resources": [
-        {
-          "name": "[concat(variables('eventHubs').nameSpace, '/GlobalSendOnlyRule')]",
-          "type": "Microsoft.EventHub/namespaces/AuthorizationRules",
-          "apiVersion": "2017-04-01",
-          "dependsOn": [
-            "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]"
-          ],
-          "properties": {
-            "rights": [
-              "Send"
-            ]
-          }
-        }
-      ]
+      "properties": {}
     },
     // Storage Account
     {
@@ -183,7 +168,6 @@
           "type": "config",
           "apiVersion": "2020-09-01",
           "dependsOn": [
-            "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').hubName, variables('eventHubs').ruleListen)]",
             "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
             "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
@@ -195,7 +179,7 @@
             "AzureWebJobsSecretStorageType": "Files",
             "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
             "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
-            "EVENTHUB_CS":"[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').hubName,variables('eventHubs').ruleListen),'2017-04-01').primaryConnectionString]",
+            //"EVENTHUB_CS":"[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').hubName,variables('eventHubs').ruleListen),'2017-04-01').primaryConnectionString]",
             "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
             "ADT_HOST_URL": "[concat('https://', reference(resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)).hostName)]",
             "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]",
