@@ -189,8 +189,8 @@
             "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
             "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
-            "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]",
-            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').webappName, 'web')]"
+            "[resourceId('Microsoft.Web/Sites', variables('webApp').functionsName)]",
+            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').functionsName, 'web')]"
           ],
           "properties": {
             "FUNCTIONS_EXTENSION_VERSION": "~3",
