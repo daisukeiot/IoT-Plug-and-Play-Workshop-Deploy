@@ -72,6 +72,22 @@
         "name": "S1"
       }
     },
+    // SignalR
+    {
+      "type": "Microsoft.SignalRService/SignalR",
+      "apiVersion": "2020-05-01",
+      "name": "[variables('signalrName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "Standard_S1",
+        "tier": "Standard",
+        "size": "S1",
+        "capacity": 1
+      }
+    },
     // ADT
     {
       "type": "Microsoft.DigitalTwins/digitalTwinsInstances",

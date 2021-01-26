@@ -88,22 +88,6 @@
         "tier": "Standard",
         "size": "S1",
         "capacity": 1
-      },
-      "kind": "SignalR",
-      "properties": {
-        "features": [
-          {
-            "flag": "ServiceMode",
-            "value": "Classic",
-            "properties": {}
-          }
-        ],
-        "cors": {
-          "allowedOrigins": [
-            "[variables('webApp').webappUrl]",
-            "https://localhost:44355"
-          ]
-        }
       }
     },
     // Maps
