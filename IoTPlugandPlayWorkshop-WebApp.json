@@ -221,5 +221,11 @@
         }
       ]
     }
-  ]
+  ],
+  "outputs": {
+    "DpsWebHookUrl": {
+      "type": "String",
+      "value": "[listsecrets(resourceId('Microsoft.Web/sites/functions', variables('webApp').functionsName, 'Dps_Processor'), '2020-09-01').trigger_url]"
+    }
+  }
 }
