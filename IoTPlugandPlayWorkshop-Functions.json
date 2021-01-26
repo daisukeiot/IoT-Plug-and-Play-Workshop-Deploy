@@ -42,10 +42,59 @@
       "webappName": "[concat(parameters('ResourcePrefix'), '-Portal-', parameters('UniqueID'))]",
       "webappUrl" : "[toLower(concat('https://', parameters('ResourcePrefix'), '-Portal-', parameters('UniqueID'), '.azurewebsites.net'))]"
     },
+    "eventHubs" : {
+      "nameSpace": "[concat(parameters('ResourcePrefix'), '-EventHubs-', parameters('UniqueID'))]",
+      "hubName": "devicetelemetryhub",
+      "cgFunctions": "telemetry-functions-cg",
+      "cgTsi": "telemetry-tsi-cg",
+      "ruleListen": "TelemetryListenRule",
+      "ruleSend": "TelemetrySendRule"
+    },
+    "adt" : {
+      "name": "[concat(parameters('ResourcePrefix'), '-ADT-', parameters('UniqueID'))]",
+      "location": "westus2",
+      "identity": "functionsidentity",
+      "roleId": "[resourceId('Microsoft.Authorization/roleDefinitions', 'bcd981a7-7f74-457b-83e1-cceb9e632ffe')]"
+    },
+    "signalrName": "[concat(parameters('ResourcePrefix'), '-SignalR-', parameters('UniqueID'))]",
+    "mapName": "[concat(parameters('ResourcePrefix'), '-MAP-', parameters('UniqueID'))]",
     "storageName": "[toLower(concat('iotpnpwsstor', parameters('UniqueID')))]",
     "envTag": "[parameters('envTag')]"
   },
   "resources": [
+    // Maps
+    {
+      "type": "Microsoft.Maps/accounts",
+      "apiVersion": "2018-05-01",
+      "name": "[variables('mapName')]",
+      "location": "global",
+      "sku": {
+        "name": "S1"
+      }
+    },
+    // ADT
+    {
+      "type": "Microsoft.DigitalTwins/digitalTwinsInstances",
+      "apiVersion": "2020-10-31",
+      "name": "[variables('adt').name]",
+      "location": "[variables('adt').location]",
+      "properties": {}
+    },
+    // Event Hubs
+    {
+      "type": "Microsoft.EventHub/namespaces",
+      "apiVersion": "2018-01-01-preview",
+      "name": "[variables('eventHubs').nameSpace]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "Standard",
+        "tier": "Standard",
+        "capacity": 1
+      },
+    },
     // Storage Account
     {
       "type": "Microsoft.Storage/storageAccounts",
@@ -116,6 +165,27 @@
         }
       },
       "resources": [
+        {
+          "apiVersion": "2020-09-01",
+          "name": "appsettings",
+          "type": "config",
+          "dependsOn": [
+            "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
+            "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
+            "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]",
+            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').webappName, 'web')]"
+          ],
+          "properties": {
+            "FUNCTIONS_EXTENSION_VERSION": "~3",
+            "AzureWebJobsStorage": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
+            "AzureWebJobsDashboard": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('storageName'),';AccountKey=',listkeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageName')), '2019-06-01').keys[0].value)]",
+            "EVENTHUB_CS":"[listKeys(resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', variables('eventHubs').nameSpace,variables('eventHubs').hubName,variables('eventHubs').ruleListen),'2017-04-01').primaryConnectionString]",
+            "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
+            "ADT_HOST_URL": "[concat('https://', reference(resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)).hostName)]",
+            "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]"
+          }
+        },
         {
           "type": "sourcecontrols",
           "apiVersion": "2020-09-01",
