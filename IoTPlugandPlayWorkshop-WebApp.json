@@ -47,6 +47,38 @@
     "envTag": "[parameters('envTag')]"
   },
   "resources": [
+    // SignalR
+    {
+      "type": "Microsoft.SignalRService/SignalR",
+      "apiVersion": "2020-05-01",
+      "name": "[variables('signalrName')]",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "ENV": "[variables('envTag')]"
+      },
+      "sku": {
+        "name": "Standard_S1",
+        "tier": "Standard",
+        "size": "S1",
+        "capacity": 1
+      },
+      "kind": "SignalR",
+      "properties": {
+        "features": [
+          {
+            "flag": "ServiceMode",
+            "value": "Classic",
+            "properties": {}
+          }
+        ],
+        "cors": {
+          "allowedOrigins": [
+            "[variables('webApp').webappUrl]",
+            "https://localhost:44355"
+          ]
+        }
+      }
+    },
     // Storage Account
     {
       "type": "Microsoft.Storage/storageAccounts",
@@ -106,6 +138,7 @@
           "name": "appsettings",
           "type": "config",
           "dependsOn": [
+            "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
             "[resourceId('Microsoft.Web/Sites', variables('webApp').webappName)]",
             "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webApp').webappName, 'web')]"
