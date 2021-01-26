@@ -168,6 +168,7 @@
           "type": "config",
           "apiVersion": "2020-09-01",
           "dependsOn": [
+            "[resourceId('Microsoft.EventHub/Namespaces/EventHubs/AuthorizationRules', variables('eventHubs').nameSpace, variables('eventHubs').hubName, variables('eventHubs').ruleListen)]",
             "[resourceId('Microsoft.EventHub/namespaces', variables('eventHubs').nameSpace)]",
             "[resourceId('Microsoft.SignalRService/SignalR', variables('signalrName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageName'))]",
