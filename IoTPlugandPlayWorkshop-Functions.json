@@ -200,7 +200,7 @@
             "AzureSignalRConnectionString": "[concat('Endpoint=https://', toLower(variables('signalrName')), '.service.signalr.net;AccessKey=', listKeys(variables('signalrName'), providers('Microsoft.SignalRService', 'SignalR').apiVersions[0]).primaryKey)]",
             "ADT_HOST_URL": "[concat('https://', reference(resourceId('Microsoft.DigitalTwins/digitalTwinsInstances', variables('adt').name)).hostName)]",
             "MAP_KEY": "[listKeys(resourceId('Microsoft.Maps/accounts', variables('mapName')), providers('Microsoft.Maps', 'accounts').apiVersions[0]).primaryKey]",
-            "ModelRepository": "[concat(parameters('GitHubURL'), parameters('GitHubBranch'))]"
+            "ModelRepository": "[concat(parameters('PrivateModelRepo'), parameters('PrivateModelBranch'))]"
           }
         },
         {
